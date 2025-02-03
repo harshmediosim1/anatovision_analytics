@@ -1,0 +1,50 @@
+{% extends 'admin/master.html' %}
+
+{% block title %}Analytics Data{% endblock %}
+
+{% block body %}
+<div class="container mt-4 pt-4">
+    <h1 class="mb-4 text-center">Analytics Data</h1>
+    
+    <!-- Display Analytics Data in a Table -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Version</th>
+                    <th>User ID</th>
+                    <th>College</th>
+                    <th>Location</th>
+                    <th>Module</th>
+                    <th>Submodule</th>
+                    <th>Time</th>
+                    <th>Duration</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in data %}
+                <tr>
+                    <td>{{ record.id }}</td>
+                    <td>{{ record.version }}</td>
+                    <td>{{ record.user_id }}</td>
+                    <td>{{ record.college }}</td>
+                    <td>{{ record.location }}</td>
+                    <td>{{ record.module }}</td>
+                    <td>{{ record.submodule }}</td>
+                    <td>{{ record.time }}</td>
+                    <td>{{ record.duration }}</td>
+                    <td>{{ record.date }}</td>
+    
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" class="text-center">No records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
