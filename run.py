@@ -6,7 +6,6 @@ from flask_admin.contrib.sqla import ModelView
 from apps import create_app
 from apps.models import db
 #Third-part Import
-
 import os
 
 

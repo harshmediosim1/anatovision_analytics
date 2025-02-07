@@ -24,6 +24,6 @@ database URI, and modification tracking setting.'''
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://cadaviz_analytics:cadaviz_analytics@db:5432/cadaviz_analytics')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

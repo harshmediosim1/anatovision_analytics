@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Flask Web Server
+  cadaviz_web:
+    build: .
+    container_name: cadaviz_web
+    ports:
+      - "5000:5000"  # Expose Flask app to localhost:5000
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://cadaviz_analytics:cadaviz_analytics@db:5432/cadaviz_analytics
+    depends_on:
+      - db
+    networks:
+      - cadaviz_network
+
+  # Dash App Server
+  dash_app:
+    build: ./cadaviz  # Assuming your Dash Dockerfile is inside a folder named 'cadaviz'
+    container_name: cadaviz_dash
+    ports:
+      - "8050:8050"  # Dash app default port
+    environment:
+      - BACKEND_URL=http://cadaviz_web:5000/ai/analytics/data
+    depends_on:
+      - cadaviz_web
+    networks:
+      - cadaviz_network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:13
+    container_name: cadaviz_db
+    environment:
+      POSTGRES_USER: cadaviz_analytics
+      POSTGRES_PASSWORD: cadaviz_analytics
+      POSTGRES_DB: cadaviz_analytics
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cadaviz_network
+
+networks:
+  cadaviz_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
