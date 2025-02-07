@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Flask-specific files
+instance/
+*.log
+
+# Database files
+*.db
+*.sqlite3
+
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env.bak/
+*.egg-info/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
