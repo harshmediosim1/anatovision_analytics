@@ -1,13 +1,12 @@
 from dash import dcc, html, dash_table
-from apps.data_processing import fetch_data  # ✅ Correct import
+from apps.data_processing import fetch_data  
 
-# ✅ Fetch data
+
 df = fetch_data()
 
-# ✅ Default visualization selection
-DEFAULT_VISUALIZATIONS = ['active-users', 'table']  # ✅ Default selected visualizations
 
-# ✅ Ensure `layout` is correctly defined as a single Dash component
+DEFAULT_VISUALIZATIONS = ['active-users', 'table']  
+
 layout = html.Div(children=[
     # 🔹 Header Section with Logo & Title
     html.Div(
@@ -38,7 +37,6 @@ layout = html.Div(children=[
     html.Div(
         style={'display': 'flex', 'height': '100vh', 'backgroundColor': '#2F3440'},
         children=[
-            # 🎛 Filters Section (Left Side - 30%)
             html.Div(
                 style={
                     'width': '30%', 'backgroundColor': '#37474F', 'padding': '30px', 'height': '100vh',
@@ -144,7 +142,6 @@ layout = html.Div(children=[
                 ]    
             ),
 
-            # 📊 Visualizations Section (Right Side - 70%)
             html.Div(
                 style={'width': '70%', 'padding': '30px', 'marginLeft': '5%', 'height': '100vh', 'overflowY': 'auto', 'borderRadius': '10px', 'backgroundColor': '#FFFFFF'},
                 children=[
@@ -153,11 +150,9 @@ layout = html.Div(children=[
                     dcc.Graph(id='stacked-bar-chart', style={'height': '500px', 'display': 'none'}),
                     dcc.Graph(id='treemap', style={'height': '500px', 'display': 'none'}),
                     dcc.Graph(id='heatmap', style={'height': '500px', 'display': 'none'}),
-
-                    # Data Table with required columns and styling
                     html.H3('User Data Table', id="table-title", style={'textAlign': 'center', 'display': 'none', 'fontSize': '22px', 'fontWeight': 'bold'}),
                     html.Div(
-                        id='data-table-container',  # The div container for DataTable visibility
+                        id='data-table-container',  
                         children=[
                             dash_table.DataTable(
                                 id='data-table',
@@ -190,7 +185,7 @@ layout = html.Div(children=[
                                 },
                             ),
                         ],
-                        style={'display': 'none'}  # Initially hide the Data Table container
+                        style={'display': 'none'}  
                     ),
                 ]
             ),
