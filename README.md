@@ -51,7 +51,7 @@ docker-compose up (for run the container)
 ```
 docker-compose exec cadaviz_web flask db upgrade(cadaviz_web i.e our flask app service name)
 ```
-##Project Structure:
+## Project Structure:
 ```bash
 cadaviz-analytics/
 ├── apps/                       #flask apps
@@ -90,4 +90,5 @@ cadaviz-analytics/
 ├── Dockerfile          # flask app file
 ├── README.md
 ├── requirements.txt    # flask level dependancy
+
 ```
