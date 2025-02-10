@@ -35,7 +35,7 @@ flask run
 ```
 ## Open the application in your browser at:
 ```
-http://127.0.0.1:8000/
+http://127.0.0.1:5000/
 ```
 ## Docker Setup:
 create two docker files for one one of flask app and one of cadaviz 
