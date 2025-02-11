@@ -34,7 +34,7 @@ def create_unity_analytics():
         date = json_payload.get("date")
 
         # List of required fields
-        required_fields = [version, user_id, college, location, module, submodule, time, duration, date]
+        required_fields = [version, user_id, college, location, module, time, duration, date]
 
         # Ensure that all required fields are present
         missing_fields = [field for field, value in zip(["version", "user_id", "college", "location", "module", "time", "duration", "date"], required_fields) if not value]
