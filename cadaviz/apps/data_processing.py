@@ -18,21 +18,26 @@ def fetch_data():
     except requests.exceptions.RequestException as e:
         # Handle issues like connection errors, timeouts, etc.
         print(f"Error fetching data from the API: {e}")
-        return pd.DataFrame()  
+        return create_empty_dataframe()  
     
     except ValueError as e:
         print(f"Error decoding JSON: {e}")
-        return pd.DataFrame()
+        return create_empty_dataframe()
     
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        return pd.DataFrame()
+        return create_empty_dataframe()
+
+def create_empty_dataframe():
+    """Returns an empty DataFrame with required columns to prevent crashes."""
+    columns = ["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"]
+    return pd.DataFrame(columns=columns)
 
 def process_json_data(data):
     """Convert JSON response to a cleaned Pandas DataFrame."""
     try:
         if not data:
-            return pd.DataFrame()         
+            return create_empty_dataframe()         
         df = pd.DataFrame(data)
         df['user_id'] = df.get('user_id', 'Unknown')
         df['date'] = pd.to_datetime(df.get('date'), errors='coerce')
@@ -42,8 +47,7 @@ def process_json_data(data):
     
     except Exception as e:
         print(f"Error processing data: {e}")
-        return pd.DataFrame() 
-
+        return create_empty_dataframe()
 
 today = datetime.date.today()
 start_of_month = today.replace(day=1)
