@@ -5,28 +5,40 @@ import datetime
 # API Endpoint
 URL = "http://cadaviz_web:5000/ai/analytics/data"
 
+# Store existing data globally
+existing_data = pd.DataFrame()
+
 def fetch_data():
-    """Fetch data from API and return a cleaned DataFrame."""
+    """Fetch data from API, append new records without removing existing data, and return the latest update timestamp."""
+    global existing_data  
+
     try:
         response = requests.get(URL)
-        response.raise_for_status() 
+        response.raise_for_status()  
         
-        data = response.json()  # Assuming data is a JSON list of records
+        new_data = response.json()  
+        new_df = process_json_data(new_data)
 
-        return process_json_data(data)
-    
+        #  Append only new records (avoid duplication)
+        if not new_df.empty:
+            new_df = new_df[~new_df.isin(existing_data)].dropna()
+            if not new_df.empty:
+                existing_data = pd.concat([existing_data, new_df]).drop_duplicates().reset_index(drop=True)
+
+        latest_update_time = existing_data['date'].max() if not existing_data.empty else None  
+        return existing_data, latest_update_time  
+
     except requests.exceptions.RequestException as e:
-        # Handle issues like connection errors, timeouts, etc.
         print(f"Error fetching data from the API: {e}")
-        return create_empty_dataframe()  
-    
+        return existing_data, None  
+
     except ValueError as e:
         print(f"Error decoding JSON: {e}")
-        return create_empty_dataframe()
-    
+        return existing_data, None
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        return create_empty_dataframe()
+        return existing_data, None
 
 def create_empty_dataframe():
     """Returns an empty DataFrame with required columns to prevent crashes."""

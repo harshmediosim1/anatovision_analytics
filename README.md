@@ -25,8 +25,8 @@ pip install -r requirements.txt
 ```
 ## Apply migrations to set up the database:
 ```
-git db init (This creates a migrations/ directory to track migrations.)
-git db migrate -m "comment" (This command will generate a migration script based on the current state of your models.)
+flask db init (This creates a migrations/ directory to track migrations.)
+flask db migrate -m "comment" (This command will generate a migration script based on the current state of your models.)
 flask db upgrade (This command applies the migration to the database.)
 ```
 ## Run the development server:
