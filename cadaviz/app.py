@@ -11,4 +11,4 @@ app.layout = layout
 register_callbacks(app)
 
 if __name__ == '__main__':
-    socketio.run(app.server, debug=False, host="0.0.0.0", port=8050 , use_reloader=False)
+    socketio.run(app.server, debug=False, host="0.0.0.0", port=8050 , use_reloader=False)git 

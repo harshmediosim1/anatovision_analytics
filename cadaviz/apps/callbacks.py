@@ -4,7 +4,7 @@ from dash import no_update
 import pandas as pd
 import plotly.express as px
 from apps.data_processing import fetch_data
-from apps.charts import create_pie_chart, create_stacked_bar_chart, create_treemap, create_heatmap
+from apps.charts import create_pie_chart, create_stacked_bar_chart, create_line_chart,create_pie_chart_for_date
 
 # Configure logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -18,14 +18,14 @@ def register_callbacks(app):
             Output('active-users-line-chart', 'figure'),
             Output('pie-chart', 'figure'),
             Output('stacked-bar-chart', 'figure'),
-            Output('treemap', 'figure'),
-            Output('heatmap', 'figure'),
+            Output('line-chart', 'figure'),
+            Output('pie-chart-2', 'figure'),
             Output('data-table', 'data'),
             Output('active-users-line-chart', 'style'),
             Output('pie-chart', 'style'),
             Output('stacked-bar-chart', 'style'),
-            Output('treemap', 'style'),
-            Output('heatmap', 'style'),
+            Output('line-chart', 'style'),
+            Output('pie-chart-2', 'style'),
             Output('data-table-container', 'style'),
             Output('table-title', 'style')
         ],
@@ -43,6 +43,7 @@ def register_callbacks(app):
         global existing_data  
 
         try:
+            # Fetch new data
             new_data, latest_update_time = fetch_data()
 
             if not new_data.empty:
@@ -59,6 +60,7 @@ def register_callbacks(app):
                 filtered_df['date'].astype(str) + ' ' + filtered_df['time'].astype(str), errors='coerce'
             )
 
+            # Apply filters based on user input
             if user_id:
                 filtered_df = filtered_df[filtered_df['user_id'].isin(user_id)]
             if module:
@@ -72,11 +74,10 @@ def register_callbacks(app):
             if location:
                 filtered_df = filtered_df[filtered_df['location'].isin(location)]
 
-            # ✅ Fixed Condition to Ensure "No Data Available" Message Works
+            # Fixed Condition to Ensure "No Data Available" Message Works
             if not visualizations or len(visualizations) == 0:
                 print("No visualizations selected. Showing 'No Data Available' message.")
                 no_data_message = {
-                   # "data": [], 
                     "layout": {
                         "xaxis": {"visible": False},
                         "yaxis": {"visible": False},
@@ -110,6 +111,7 @@ def register_callbacks(app):
             #  Generate Charts
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
+            title_color='Green'
             if 'active-users' in visualizations:
                 last_7_days_df = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(days=7)]
                 active_users_fig = px.line(
@@ -121,9 +123,7 @@ def register_callbacks(app):
 
                 # Add annotations with active user metrics for the entire data
                 total_users = filtered_df['user_id'].nunique()
-                active_users_last_hour = filtered_df[
-                    filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(hours=1)
-                ]['user_id'].nunique()
+                active_users_last_hour = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(hours=1)]['user_id'].nunique()
                 active_users_last_7_days = last_7_days_df['user_id'].nunique()
 
                 active_users_fig.add_annotation(
@@ -151,8 +151,8 @@ def register_callbacks(app):
 
             pie_fig = {}
             stacked_bar_fig = {}
-            treemap_fig = {}
-            heatmap_fig = {}
+            line_chart_fig = {}
+            pie_fig_2 = {}
 
             if 'pie' in visualizations:
                 pie_fig = create_pie_chart(filtered_df)
@@ -160,38 +160,40 @@ def register_callbacks(app):
             if 'stacked-bar' in visualizations:
                 stacked_bar_fig = create_stacked_bar_chart(filtered_df)
 
-            if 'treemap' in visualizations:
-                treemap_fig = create_treemap(filtered_df)
+            if 'line-chart' in visualizations:
+                line_chart_fig = create_line_chart(filtered_df) 
+        
+            if 'pie-2' in visualizations:
+                if start_date:
+                    pie_fig_2 = create_pie_chart_for_date(filtered_df, start_date) 
 
-            if 'heatmap' in visualizations:
-                heatmap_fig = create_heatmap(filtered_df)
-
+            # Define visibility styles for the visualizations
             graph_styles = {'display': 'none'}
             table_style = {'display': 'none'}
             table_title_style = {'display': 'none'}
 
-            active_users_style = pie_style = stacked_bar_style = treemap_style = heatmap_style = table_style = graph_styles.copy()
+            active_users_style = pie_style = stacked_bar_style =line_chart_style = pie_style_2 = table_style = graph_styles.copy()
             if 'active-users' in visualizations:
                 active_users_style = {'display': 'block'}
             if 'pie' in visualizations:
                 pie_style = {'display': 'block'}
             if 'stacked-bar' in visualizations:
                 stacked_bar_style = {'display': 'block'}
-            if 'treemap' in visualizations:
-                treemap_style = {'display': 'block'}
-            if 'heatmap' in visualizations:
-                heatmap_style = {'display': 'block'}
+            if 'line-chart' in visualizations:
+                line_chart_style = {'display': 'block'}
+            if 'pie-2' in visualizations:
+                pie_style_2 = {'display': 'block'}
             if 'table' in visualizations:
                 table_style = {'display': 'block'}
                 table_title_style = {'display': 'block'}
 
             return (
-                active_users_fig, pie_fig, stacked_bar_fig, treemap_fig, heatmap_fig,
+                active_users_fig, pie_fig, stacked_bar_fig, line_chart_fig, pie_fig_2,
                 filtered_df.to_dict('records'),
-                active_users_style, pie_style, stacked_bar_style, treemap_style, heatmap_style,
+                active_users_style, pie_style, stacked_bar_style,line_chart_style, pie_style_2,
                 table_style, table_title_style
             )
 
         except Exception as e:
             logging.error(f"Error in update_graphs: {e}", exc_info=True)
-            return [no_update] * 13  
+            return [no_update] * 13
