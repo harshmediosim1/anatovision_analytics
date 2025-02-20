@@ -10,7 +10,116 @@ df, _ = fetch_data()
 
 DEFAULT_VISUALIZATIONS = ['active-users', 'table']  
 
-layout = html.Div(children=[
+# Login page layout
+login_layout = html.Div(
+    style={
+        'background': 'linear-gradient(to right, #6a82fb, #fc5c7d)', 
+        'height': '100vh',
+        'display': 'flex',
+        'justify-content': 'center',
+        'align-items': 'center',
+        'font-family': 'Arial, sans-serif',
+    },
+    children=[
+        html.Div(
+            style={
+                'background-color': '#fff',  
+                'padding': '30px',
+                'border-radius': '10px',  
+                'box-shadow': '0 4px 10px rgba(0, 0, 0, 0.1)',  
+                'width': '350px',  
+                'text-align': 'center'
+            },
+            children=[
+                html.H3("Login", style={'color': '#333', 'font-size': '2rem', 'margin-bottom': '20px'}),
+
+                dcc.Input(
+                    id='username', 
+                    type='text', 
+                    placeholder='Enter your username',
+                    style={
+                        'width': '100%', 
+                        'padding': '10px', 
+                        'margin-bottom': '15px', 
+                        'border': '1px solid #ccc', 
+                        'border-radius': '5px',
+                        'box-sizing': 'border-box',
+                        'font-size': '1rem'
+                    }
+                ),
+
+                dcc.Input(
+                    id='password', 
+                    type='password', 
+                    placeholder='Enter your password',
+                    style={
+                        'width': '100%', 
+                        'padding': '10px', 
+                        'margin-bottom': '20px', 
+                        'border': '1px solid #ccc', 
+                        'border-radius': '5px',
+                        'box-sizing': 'border-box',
+                        'font-size': '1rem'
+                    }
+                ),
+
+                html.Button(
+                    'Login', 
+                    id='login-button', 
+                    n_clicks=0,
+                    style={
+                        'width': '100%', 
+                        'padding': '12px', 
+                        'background-color': '#6a82fb', 
+                        'color': '#002ad3', 
+                        'border': 'none', 
+                        'border-radius': '5px', 
+                        'font-size': '1.1rem', 
+                        'cursor': 'pointer'
+                    }
+                ),
+
+                html.Div(
+                    id='login-feedback', 
+                    style={'color': 'red', 'margin-top': '15px'}
+                ),
+
+                # Hidden Logout Button (Shown in Dashboard)
+                html.Button(
+                    'Logout',
+                    id='logout-button',
+                    n_clicks=0,
+                    style={
+                        'width': '100%',
+                        'padding': '12px',
+                        'background-color': '#ff4d4d',
+                        'color': 'white',
+                        'border': 'none',
+                        'border-radius': '5px',
+                        'font-size': '1.1rem',
+                        'cursor': 'pointer',
+                        'margin-top': '15px',
+                        'display': 'none' 
+                    }
+                ),
+
+                html.Div(
+                    children=[
+                        html.A(
+                            'Forgot your password?',
+                            href='#',
+                            style={'font-size': '0.9rem', 'color': '#6a82fb', 'text-decoration': 'none', 'margin-top': '15px'}
+                        )
+                    ],
+                    style={'margin-top': '15px'}
+                )
+            ]
+        )
+    ]
+)
+
+# Dashboard layout (Logout button only in Dashboard)
+dashboard_layout = html.Div(children=[
     html.Div(
         style={
             'display': 'flex',
@@ -32,9 +141,22 @@ layout = html.Div(children=[
                 'Cadaviz Analytics Dashboard',
                 style={'color': '#F2C94C', 'fontWeight': 'bold', 'flex': 1, 'textAlign': 'center', 'fontSize': '36px'}
             ),
+            html.Button(
+                'Logout',
+                id='logout-button',
+                n_clicks=0,
+                style={
+                    'padding': '10px',
+                    'backgroundColor': '#ff4d4d',
+                    'color': 'red',
+                    'border': 'none',
+                    'borderRadius': '5px',
+                    'cursor': 'pointer',
+                    'fontSize': '16px'
+                }
+            )
         ]
     ),
-
     html.Div(
         style={'display': 'flex', 'height': '100vh', 'backgroundColor': '#2F3440', 'overflow': 'hidden'},
         children=[
@@ -56,7 +178,7 @@ layout = html.Div(children=[
                 children=[
                     html.H3('Home', style={'textAlign': 'center', 'color': '#a30c4e', 'fontSize': '20px', 'fontWeight': 'bold'}), 
                     html.Div([
-                        html.Label("Select Visualization(s):", style={'color': '#000080', 'fontWeight': 'bold', 'fontSize': '12px'}), 
+                        html.Label("Select Visualization(s):", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}), 
                         dcc.Dropdown(
                             id='visualization-filter',
                             options=[
@@ -176,7 +298,7 @@ layout = html.Div(children=[
                                     'overflowY': 'auto',
                                     'backgroundColor': '#F5F5F5',
                                     'overflowX': 'scroll',  
-                                    'backgroundColor': '#F5F5F5',  
+                                    #'backgroundColor': '#F5F5F5',  
                                     'borderBottom': '5px solid #FF5733',  
                                     'paddingBottom': '10px'
                                 },
@@ -199,4 +321,11 @@ layout = html.Div(children=[
             ),
         ]
     )
+])
+Main_layout = html.Div([
+    dcc.Store(id='login-state', data=False),  # Track login state
+   # html.Button('Login', id='login-button', n_clicks=0, style={'display': 'none'}),
+   # html.Button('Logout', id='logout-button', n_clicks=0, style={'display': 'none'}),
+    html.Div(id="page-content", children=login_layout),
+
 ])

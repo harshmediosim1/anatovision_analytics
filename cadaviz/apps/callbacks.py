@@ -1,18 +1,51 @@
-import logging
-from dash.dependencies import Input, Output
-from dash import no_update
+import dash
+from dash.dependencies import Input, Output, State
+from dash import dcc, html, no_update
 import pandas as pd
+from dash.exceptions import PreventUpdate
 import plotly.express as px
-from apps.data_processing import fetch_data
-from apps.charts import create_pie_chart, create_stacked_bar_chart, create_line_chart,create_pie_chart_for_date
+from apps.data_processing import fetch_data, validate_user
+from apps.layout import dashboard_layout, login_layout ,Main_layout
+from apps.charts import create_pie_chart, create_stacked_bar_chart, create_line_chart, create_pie_chart_for_date
+import logging
 
 # Configure logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Global variable to store existing data
 existing_data = pd.DataFrame()
-
 def register_callbacks(app):
+    @app.callback(
+        [Output("page-content", "children"),
+         Output("login-feedback", "children"),
+         Output("login-state", "data")],
+        [Input("login-button", "n_clicks"),
+         Input("logout-button", "n_clicks")],  # Logout button might not exist initially
+        [State("username", "value"),
+         State("password", "value"),
+         State("login-state", "data")]
+    )
+    def manage_login_logout(login_clicks, logout_clicks, username, password, login_state):
+        ctx = dash.callback_context
+
+        if not ctx.triggered:
+            raise PreventUpdate
+
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+        if button_id == "login-button":
+            if not username or not password:
+                return login_layout, "Please enter username and password", False
+
+            is_valid, _ = validate_user(username, password)
+            if is_valid:
+                return dashboard_layout, "", True  # Switch to dashboard
+            else:
+                return login_layout, "Invalid username or password", False
+
+        if button_id == "logout-button":
+            return login_layout, "You have been logged out.", False  # Switch back to login
+
+        return no_update, no_update, no_update
     @app.callback(
         [
             Output('active-users-line-chart', 'figure'),
@@ -43,7 +76,6 @@ def register_callbacks(app):
         global existing_data  
 
         try:
-            # Fetch new data
             new_data, latest_update_time = fetch_data()
 
             if not new_data.empty:
@@ -57,10 +89,9 @@ def register_callbacks(app):
             filtered_df = existing_data.copy()
             filtered_df['date'] = pd.to_datetime(filtered_df['date']).dt.strftime('%Y-%m-%d')
             filtered_df['datetime'] = pd.to_datetime(
-                filtered_df['date'].astype(str) + ' ' + filtered_df['time'].astype(str), errors='coerce'
+                filtered_df['date'].astype(str) + ' ' + filtered_df['time'].astype(str),format='%Y-%m-%d %H:%M:%S', errors='coerce'
             )
 
-            # Apply filters based on user input
             if user_id:
                 filtered_df = filtered_df[filtered_df['user_id'].isin(user_id)]
             if module:
@@ -74,7 +105,6 @@ def register_callbacks(app):
             if location:
                 filtered_df = filtered_df[filtered_df['location'].isin(location)]
 
-            # Fixed Condition to Ensure "No Data Available" Message Works
             if not visualizations or len(visualizations) == 0:
                 print("No visualizations selected. Showing 'No Data Available' message.")
                 no_data_message = {
@@ -103,15 +133,14 @@ def register_callbacks(app):
                 
                 return (
                     no_data_message, no_data_message, no_data_message, no_data_message, no_data_message, 
-                    [],  # Empty table
+                    [],  
                     {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'},  
                     {'display': 'none'}, {'display': 'none'}
                 )
 
-            #  Generate Charts
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
-            title_color='Green'
+
             if 'active-users' in visualizations:
                 last_7_days_df = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(days=7)]
                 active_users_fig = px.line(
@@ -121,7 +150,6 @@ def register_callbacks(app):
                     title="Active Users Over Time (Last 7 Days)"
                 )
 
-                # Add annotations with active user metrics for the entire data
                 total_users = filtered_df['user_id'].nunique()
                 active_users_last_hour = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(hours=1)]['user_id'].nunique()
                 active_users_last_7_days = last_7_days_df['user_id'].nunique()
@@ -165,14 +193,14 @@ def register_callbacks(app):
         
             if 'pie-2' in visualizations:
                 if start_date:
-                    pie_fig_2 = create_pie_chart_for_date(filtered_df, start_date) 
+                    pie_fig_2 = create_pie_chart_for_date(filtered_df, start_date)
 
             # Define visibility styles for the visualizations
             graph_styles = {'display': 'none'}
             table_style = {'display': 'none'}
             table_title_style = {'display': 'none'}
 
-            active_users_style = pie_style = stacked_bar_style =line_chart_style = pie_style_2 = table_style = graph_styles.copy()
+            active_users_style = pie_style = stacked_bar_style = line_chart_style = pie_style_2 = table_style = graph_styles.copy()
             if 'active-users' in visualizations:
                 active_users_style = {'display': 'block'}
             if 'pie' in visualizations:

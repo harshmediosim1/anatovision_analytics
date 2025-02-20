@@ -5,8 +5,24 @@ import datetime
 # API Endpoint
 URL = "http://cadaviz_web:5000/ai/analytics/data"
 
-# Store existing data globally
 existing_data = pd.DataFrame()
+
+users = {
+    'Amit': 'IL17022025',  
+    'Navin': 'IL16022025',  
+    'Amresh': 'IL18022025' 
+}
+
+root_password = "Cadaviz@2025"  #
+
+def validate_user(username, password):
+    """Validate the user credentials."""
+    if username in users and users[username] == password:
+        return True, ""  # Valid user
+    elif username == "root" and password == root_password:
+        return True, ""  # Root user
+    else:
+        return False, "Invalid username or password"
 
 def fetch_data():
     """Fetch data from API, append new records without removing existing data, and return the latest update timestamp."""
@@ -16,15 +32,14 @@ def fetch_data():
         response = requests.get(URL)
         response.raise_for_status()  
         
-        new_data = response.json()  
+        new_data = response.json() 
         new_df = process_json_data(new_data)
-
-        #  Append only new records (avoid duplication)
         if not new_df.empty:
             new_df = new_df[~new_df.isin(existing_data)].dropna()
             if not new_df.empty:
                 existing_data = pd.concat([existing_data, new_df]).drop_duplicates().reset_index(drop=True)
 
+        
         latest_update_time = existing_data['date'].max() if not existing_data.empty else None  
         return existing_data, latest_update_time  
 
@@ -49,7 +64,7 @@ def process_json_data(data):
     """Convert JSON response to a cleaned Pandas DataFrame."""
     try:
         if not data:
-            return create_empty_dataframe()         
+            return create_empty_dataframe() 
         df = pd.DataFrame(data)
         df['user_id'] = df.get('user_id', 'Unknown')
         df['date'] = pd.to_datetime(df.get('date'), errors='coerce')
@@ -64,7 +79,7 @@ def process_json_data(data):
 today = datetime.date.today()
 start_of_month = today.replace(day=1)
 end_of_month = today.replace(day=28) + pd.DateOffset(days=4)  
-end_of_month = end_of_month - pd.DateOffset(days=end_of_month.day)
+end_of_month = end_of_month - pd.DateOffset(days=end_of_month.day)  
 
 # Default visualization selection
 DEFAULT_VISUALIZATIONS = ['table', 'active-users']
