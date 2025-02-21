@@ -2,7 +2,6 @@ import dash
 from dash.dependencies import Input, Output, State
 from dash import dcc, html, no_update
 import pandas as pd
-from dash.exceptions import PreventUpdate
 import plotly.express as px
 from apps.data_processing import fetch_data, validate_user
 from apps.layout import dashboard_layout, login_layout ,Main_layout
@@ -15,35 +14,39 @@ logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %
 existing_data = pd.DataFrame()
 def register_callbacks(app):
     @app.callback(
-        [Output("page-content", "children"),
-         Output("login-feedback", "children"),
-         Output("login-state", "data")],
-        [Input("login-button", "n_clicks"),
-         Input("logout-button", "n_clicks")],  # Logout button might not exist initially
-        [State("username", "value"),
-         State("password", "value"),
-         State("login-state", "data")]
+        [Output('page-content', 'children'),
+         Output('login-feedback', 'children'),
+         Output('login-state', 'data')],
+        [Input('login-button', 'n_clicks')],
+        [State('username', 'value'),
+         State('password', 'value'),
+         State('login-state', 'data')]
     )
-    def manage_login_logout(login_clicks, logout_clicks, username, password, login_state):
+    def manage_login(login_clicks, username, password, login_state):
         ctx = dash.callback_context
+        print("Callback triggered!")
 
         if not ctx.triggered:
-            raise PreventUpdate
+            print("No trigger detected. Returning login layout.")
+            return login_layout, "", login_state  
 
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        print(f"Button clicked: {button_id}")
 
-        if button_id == "login-button":
+        if button_id == 'login-button':
+            print(f"Attempting login with Username: {username} and Password: {password}")
+
             if not username or not password:
-                return login_layout, "Please enter username and password", False
+                print("Login failed: Missing username or password")
+                return login_layout, "Please enter username and password", False  
 
-            is_valid, _ = validate_user(username, password)
+            is_valid, message = validate_user(username, password)
             if is_valid:
-                return dashboard_layout, "", True  # Switch to dashboard
+                print("Login successful!")
+                return dashboard_layout, "", True 
             else:
-                return login_layout, "Invalid username or password", False
-
-        if button_id == "logout-button":
-            return login_layout, "You have been logged out.", False  # Switch back to login
+                print("Login failed: Invalid credentials")
+                return login_layout, "Invalid username or password", False  
 
         return no_update, no_update, no_update
     @app.callback(
@@ -60,7 +63,11 @@ def register_callbacks(app):
             Output('line-chart', 'style'),
             Output('pie-chart-2', 'style'),
             Output('data-table-container', 'style'),
-            Output('table-title', 'style')
+            Output('table-title', 'style'),
+             Output('user-id-filter', 'options'),
+            Output('module-filter', 'options'),
+            Output('version-filter', 'options'),
+            Output('location-filter', 'options')
         ],
         [
             Input('user-id-filter', 'value'),
@@ -84,7 +91,7 @@ def register_callbacks(app):
                     existing_data = pd.concat([existing_data, new_data]).drop_duplicates().reset_index(drop=True)
 
             if existing_data.empty:
-                return no_update  
+                  return [no_update] * 17   
 
             filtered_df = existing_data.copy()
             filtered_df['date'] = pd.to_datetime(filtered_df['date']).dt.strftime('%Y-%m-%d')
@@ -219,9 +226,13 @@ def register_callbacks(app):
                 active_users_fig, pie_fig, stacked_bar_fig, line_chart_fig, pie_fig_2,
                 filtered_df.to_dict('records'),
                 active_users_style, pie_style, stacked_bar_style,line_chart_style, pie_style_2,
-                table_style, table_title_style
+                table_style, table_title_style,
+                [{'label': user, 'value': user} for user in existing_data['user_id'].unique()],
+                [{'label': module, 'value': module} for module in existing_data['module'].unique()],
+                [{'label': version, 'value': version} for version in existing_data['version'].unique()],
+                [{'label': location, 'value': location} for location in existing_data['location'].unique()]
             )
 
         except Exception as e:
             logging.error(f"Error in update_graphs: {e}", exc_info=True)
-            return [no_update] * 13
+            return [no_update] * 17

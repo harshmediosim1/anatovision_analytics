@@ -83,26 +83,6 @@ login_layout = html.Div(
                     id='login-feedback', 
                     style={'color': 'red', 'margin-top': '15px'}
                 ),
-
-                # Hidden Logout Button (Shown in Dashboard)
-                html.Button(
-                    'Logout',
-                    id='logout-button',
-                    n_clicks=0,
-                    style={
-                        'width': '100%',
-                        'padding': '12px',
-                        'background-color': '#ff4d4d',
-                        'color': 'white',
-                        'border': 'none',
-                        'border-radius': '5px',
-                        'font-size': '1.1rem',
-                        'cursor': 'pointer',
-                        'margin-top': '15px',
-                        'display': 'none' 
-                    }
-                ),
-
                 html.Div(
                     children=[
                         html.A(
@@ -141,20 +121,6 @@ dashboard_layout = html.Div(children=[
                 'Cadaviz Analytics Dashboard',
                 style={'color': '#F2C94C', 'fontWeight': 'bold', 'flex': 1, 'textAlign': 'center', 'fontSize': '36px'}
             ),
-            html.Button(
-                'Logout',
-                id='logout-button',
-                n_clicks=0,
-                style={
-                    'padding': '10px',
-                    'backgroundColor': '#ff4d4d',
-                    'color': 'red',
-                    'border': 'none',
-                    'borderRadius': '5px',
-                    'cursor': 'pointer',
-                    'fontSize': '16px'
-                }
-            )
         ]
     ),
     html.Div(
@@ -165,10 +131,13 @@ dashboard_layout = html.Div(children=[
                     'width': '25%',  
                     'height': '100vh',
                     'padding': '8px',  
-                    'backgroundColor': '#2c3e50',
+                    'background': 'rgba(44, 62, 80, 0.6)', 
                     'color': 'white',
                     'fontFamily': 'Arial, sans-serif',
-                    'borderRight': '10px solid #0d08a5',
+                    'borderRight': '5px solid rgba(0, 123, 255, 0.6)', 
+                    'backdropFilter': 'blur(12px)',
+                    'borderRadius': '12px',  
+                    'boxShadow': '4px 4px 10px rgba(0, 0, 0, 0.3)',
                     'overflowY': 'auto',
                     'scrollBehavior': 'smooth',
                     'maxHeight': '100vh',
@@ -176,9 +145,9 @@ dashboard_layout = html.Div(children=[
                     'top': '0'
                 },
                 children=[
-                    html.H3('Home', style={'textAlign': 'center', 'color': '#a30c4e', 'fontSize': '20px', 'fontWeight': 'bold'}), 
+                    html.H3('Home', style={'textAlign': 'center', 'color': '#007bff', 'fontSize': '20px', 'fontWeight': 'bold','textShadow': '0px 0px 8px rgba(0, 123, 255, 0.7)'  }), 
                     html.Div([
-                        html.Label("Select Visualization(s):", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}), 
+                        html.Label("Select Visualization(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}), 
                         dcc.Dropdown(
                             id='visualization-filter',
                             options=[
@@ -197,7 +166,7 @@ dashboard_layout = html.Div(children=[
                     ], style={'marginBottom': '4px'}),  
 
                     html.Div([
-                        html.Label("Select User ID(s):", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}),  
+                        html.Label("Select User ID(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
                         dcc.Dropdown(
                             id='user-id-filter',
                             options=[{'label': user, 'value': user} for user in df['user_id'].unique()],
@@ -207,7 +176,7 @@ dashboard_layout = html.Div(children=[
                     ], style={'marginBottom': '4px'}), 
 
                     html.Div([
-                        html.Label("Select Module(s):", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}),  
+                        html.Label("Select Module(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
                         dcc.Dropdown(
                             id='module-filter',
                             options=[{'label': module, 'value': module} for module in df['module'].unique()],
@@ -218,7 +187,7 @@ dashboard_layout = html.Div(children=[
                     ], style={'marginBottom': '4px'}),  
 
                     html.Div([
-                        html.Label("Select Version:", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}), 
+                        html.Label("Select Version:", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}), 
                         dcc.Dropdown(
                             id='version-filter',
                             options=[{'label': version, 'value': version} for version in df['version'].unique()],
@@ -229,7 +198,7 @@ dashboard_layout = html.Div(children=[
                     ], style={'marginBottom': '4px'}),  
 
                     html.Div([
-                        html.Label("Select Date Range:", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}),  
+                        html.Label("Select Date Range:", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
                         dcc.DatePickerRange(
                             id='date-picker-range',
                             start_date=None,
@@ -242,7 +211,7 @@ dashboard_layout = html.Div(children=[
                     ], style={'marginBottom': '4px'}), 
 
                     html.Div([
-                        html.Label("Select location:", style={'color': '#a5081d', 'fontWeight': 'bold', 'fontSize': '12px'}),  
+                        html.Label("Select Location:", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
                         dcc.Dropdown(
                             id='location-filter',
                             options=[{'label': location, 'value': location} for location in df['location'].unique()],
