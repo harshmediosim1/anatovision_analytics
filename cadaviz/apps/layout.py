@@ -82,17 +82,8 @@ login_layout = html.Div(
                 html.Div(
                     id='login-feedback', 
                     style={'color': 'red', 'margin-top': '15px'}
-                ),
-                html.Div(
-                    children=[
-                        html.A(
-                            'Forgot your password?',
-                            href='#',
-                            style={'font-size': '0.9rem', 'color': '#6a82fb', 'text-decoration': 'none', 'margin-top': '15px'}
-                        )
-                    ],
-                    style={'margin-top': '15px'}
                 )
+               
             ]
         )
     ]
@@ -266,8 +257,7 @@ dashboard_layout = html.Div(children=[
                                     'height': '600px',
                                     'overflowY': 'auto',
                                     'backgroundColor': '#F5F5F5',
-                                    'overflowX': 'scroll',  
-                                    #'backgroundColor': '#F5F5F5',  
+                                    'overflowX': 'scroll',   
                                     'borderBottom': '5px solid #FF5733',  
                                     'paddingBottom': '10px'
                                 },
@@ -292,9 +282,7 @@ dashboard_layout = html.Div(children=[
     )
 ])
 Main_layout = html.Div([
-    dcc.Store(id='login-state', data=False),  # Track login state
-   # html.Button('Login', id='login-button', n_clicks=0, style={'display': 'none'}),
-   # html.Button('Logout', id='logout-button', n_clicks=0, style={'display': 'none'}),
+    dcc.Store(id='login-state', data=False),  
     html.Div(id="page-content", children=login_layout),
 
 ])

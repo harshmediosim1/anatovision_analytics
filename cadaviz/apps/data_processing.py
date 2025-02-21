@@ -18,9 +18,9 @@ root_password = "Cadaviz@2025"  #
 def validate_user(username, password):
     """Validate the user credentials."""
     if username in users and users[username] == password:
-        return True, ""  # Valid user
+        return True, ""  
     elif username == "root" and password == root_password:
-        return True, ""  # Root user
+        return True, ""  
     else:
         return False, "Invalid username or password"
 
