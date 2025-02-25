@@ -7,6 +7,7 @@ from apps.data_processing import fetch_data, validate_user
 from apps.layout import dashboard_layout, login_layout ,Main_layout
 from apps.charts import create_pie_chart, create_stacked_bar_chart, create_line_chart, create_pie_chart_for_date
 import logging
+from apps.socket_manager import socketio
 
 # Configure logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')

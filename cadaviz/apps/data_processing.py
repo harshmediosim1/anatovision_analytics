@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import datetime
+from apps.socket_manager import socketio  # Import socketio from app.py
 
 # API Endpoint
 URL = "http://cadaviz_web:5000/ai/analytics/data"
@@ -13,7 +14,7 @@ users = {
     'Amresh': 'IL18022025' 
 }
 
-root_password = "Cadaviz@2025"  #
+root_password = "Cadaviz@2025"
 
 def validate_user(username, password):
     """Validate the user credentials."""
@@ -25,7 +26,7 @@ def validate_user(username, password):
         return False, "Invalid username or password"
 
 def fetch_data():
-    """Fetch data from API, append new records without removing existing data, and return the latest update timestamp."""
+    """Fetch data from API, append new records without removing existing data, and trigger real-time updates."""
     global existing_data  
 
     try:
@@ -34,11 +35,14 @@ def fetch_data():
         
         new_data = response.json() 
         new_df = process_json_data(new_data)
+
         if not new_df.empty:
             new_df = new_df[~new_df.isin(existing_data)].dropna()
             if not new_df.empty:
                 existing_data = pd.concat([existing_data, new_df]).drop_duplicates().reset_index(drop=True)
 
+                # 🔹 Emit real-time update event to Dash
+                socketio.emit('data_update', {'status': 'updated', 'records': len(new_df)})
         
         latest_update_time = existing_data['date'].max() if not existing_data.empty else None  
         return existing_data, latest_update_time  
@@ -65,10 +69,15 @@ def process_json_data(data):
     try:
         if not data:
             return create_empty_dataframe() 
+        
         df = pd.DataFrame(data)
         df['user_id'] = df.get('user_id', 'Unknown')
         df['date'] = pd.to_datetime(df.get('date'), errors='coerce')
+        
+        # 🔹 Fix inconsistent time format (add seconds if missing)
         df['time'] = df.get('time', '').astype(str)
+        df['time'] = df['time'].apply(lambda x: x if len(x) == 8 else x + ":00")
+        
         df['college'] = df.get('college', "Unknown")
         return df
     
