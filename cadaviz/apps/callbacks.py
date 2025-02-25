@@ -64,7 +64,7 @@ def register_callbacks(app):
             Output('pie-chart-2', 'style'),
             Output('data-table-container', 'style'),
             Output('table-title', 'style'),
-             Output('user-id-filter', 'options'),
+            Output('user-id-filter', 'options'),
             Output('module-filter', 'options'),
             Output('version-filter', 'options'),
             Output('location-filter', 'options')
@@ -91,59 +91,37 @@ def register_callbacks(app):
                     existing_data = pd.concat([existing_data, new_data]).drop_duplicates().reset_index(drop=True)
 
             if existing_data.empty:
-                  return [no_update] * 17   
+                return [no_update] * 17   
 
             filtered_df = existing_data.copy()
-            filtered_df['date'] = pd.to_datetime(filtered_df['date']).dt.strftime('%Y-%m-%d')
-            filtered_df['datetime'] = pd.to_datetime(
-                filtered_df['date'].astype(str) + ' ' + filtered_df['time'].astype(str),format='%Y-%m-%d %H:%M:%S', errors='coerce'
+
+            # Fix inconsistent time format (add seconds if missing)
+            filtered_df["time"] = filtered_df["time"].astype(str)
+            filtered_df["time"] = filtered_df["time"].apply(lambda x: x if len(x) == 8 else x + ":00")
+
+            # Create datetime column
+            filtered_df["datetime"] = pd.to_datetime(
+                filtered_df["date"].astype(str) + " " + filtered_df["time"].astype(str), 
+                format="%Y-%m-%d %H:%M:%S", 
+                errors="coerce"
             )
+            filtered_df = filtered_df.dropna(subset=["datetime"])  # Drop invalid dates
+
+            # Ensure date format is consistent for the table
+            filtered_df["date"] = filtered_df["datetime"].dt.strftime("%Y-%m-%d")
 
             if user_id:
-                filtered_df = filtered_df[filtered_df['user_id'].isin(user_id)]
+                filtered_df = filtered_df[filtered_df["user_id"].isin(user_id)]
             if module:
-                filtered_df = filtered_df[filtered_df['module'].isin(module)]
+                filtered_df = filtered_df[filtered_df["module"].isin(module)]
             if start_date and end_date:
                 start_date = pd.to_datetime(start_date)
                 end_date = pd.to_datetime(end_date).replace(hour=23, minute=59, second=59, microsecond=999999)
-                filtered_df = filtered_df[(filtered_df['datetime'] >= start_date) & (filtered_df['datetime'] <= end_date)]
+                filtered_df = filtered_df[(filtered_df["datetime"] >= start_date) & (filtered_df["datetime"] <= end_date)]
             if version:
-                filtered_df = filtered_df[filtered_df['version'].isin(version)]
+                filtered_df = filtered_df[filtered_df["version"].isin(version)]
             if location:
-                filtered_df = filtered_df[filtered_df['location'].isin(location)]
-
-            if not visualizations or len(visualizations) == 0:
-                print("No visualizations selected. Showing 'No Data Available' message.")
-                no_data_message = {
-                    "layout": {
-                        "xaxis": {"visible": False},
-                        "yaxis": {"visible": False},
-                        "annotations": [
-                            {
-                                "text": "No Data Available",
-                                "xref": "paper",
-                                "yref": "paper",
-                                "x": 0.5,
-                                "y": 0.5,
-                                "showarrow": False,
-                                "font": {"size": 24, "color": "Blue"},
-                                "align": "center",
-                                "xanchor": "center",
-                                "yanchor": "middle",
-                                "bgcolor": "rgba(255, 255, 255, 0.9)",
-                                "bordercolor": "blue",
-                                "borderwidth": 2
-                            }
-                        ]
-                    }
-                }
-                
-                return (
-                    no_data_message, no_data_message, no_data_message, no_data_message, no_data_message, 
-                    [],  
-                    {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'},  
-                    {'display': 'none'}, {'display': 'none'}
-                )
+                filtered_df = filtered_df[filtered_df["location"].isin(location)]
 
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
