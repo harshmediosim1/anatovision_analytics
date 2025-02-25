@@ -47,7 +47,7 @@ services Name- Flask App(cadaviz_web), Dash App(dash_app), Database(db)
 docker-compose build (for build the image and container)
 docker-compose up (for run the container)
 ```
-## Docker DB Uograde Command:
+## Docker DB Upgrade Command:
 ```
 docker-compose exec cadaviz_web flask db upgrade(cadaviz_web i.e our flask app service name)
 ```
@@ -110,7 +110,7 @@ admin_user.set_password("admin")
 db.session.add(admin_user)
 db.session.commit()
 ```
-## Create Admin User Using Flask:
+## Create Admin User Using Flask for docker:
 - if we used docker container then we have to create admin user in container isloation using following steps. 
 1.  Create Admin User Inside the Dockerized Flask App(Access the Flask App Container)
     cmd - ```docker exec -it cadaviz_web sh  (cadaviz_web is our flask service name)

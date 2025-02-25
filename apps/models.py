@@ -22,7 +22,7 @@ class AnalyticsData(db.Model):
     time = db.Column(db.String(50), nullable=False, default=lambda: datetime.now().strftime("%H:%M:%S"))
     duration = db.Column(db.String(50), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    file_id = db.Column(db.Integer, db.ForeignKey('file_upload.id'), nullable=False) 
+    file_id = db.Column(db.Integer, db.ForeignKey('file_upload.id'), nullable=True) 
 
     # def __repr__(self):
     #     return f'<SessionData {self.id} - User {self.version}>'
