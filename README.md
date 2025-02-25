@@ -114,7 +114,8 @@ db.session.commit()
 - if we used docker container then we have to create admin user in container isloation using following steps. 
 1.  Create Admin User Inside the Dockerized Flask App(Access the Flask App Container)
     cmd -
-     ```docker exec -it cadaviz_web sh  (cadaviz_web is our flask service name)
+     ```
+     docker exec -it cadaviz_web sh  (cadaviz_web is our flask service name)
      ```
 
     Then followed the next cmd using flask shell    
