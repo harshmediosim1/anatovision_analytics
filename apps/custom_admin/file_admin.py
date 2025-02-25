@@ -15,6 +15,13 @@ from datetime import datetime
 
 '''The `FileAdminView` class in Python defines methods for uploading, extracting data from file,
 downloading, and deleting files in a web application.'''
+import hashlib
+
+def generate_file_hash(file_data):
+    """Generate a hash for the file content to check for duplicates."""
+    hash_md5 = hashlib.md5()
+    hash_md5.update(file_data)
+    return hash_md5.hexdigest()
 
 class FileAdminView(BaseView):
     @expose('/', methods=['GET', 'POST'])
@@ -24,35 +31,39 @@ class FileAdminView(BaseView):
             if file.filename:
                 filename = secure_filename(file.filename)
 
+                # Read the file data
+                file_data = file.read()
+
                 try:
-                    # Save file in the database as binary
-                    file_data = file.read()
+                    # Check if a file with the same name already exists
+                    existing_file = FileUpload.query.filter_by(filename=filename).first()
+
+                    # If the file exists, delete old AnalyticsData entries related to the file
+                    if existing_file:
+                        # Remove old AnalyticsData entries related to the old file
+                        analytics_data_entries = AnalyticsData.query.filter_by(file_id=existing_file.id).all()
+                        for entry in analytics_data_entries:
+                            db.session.delete(entry)
+                        db.session.commit()
+
+                        # Remove the old file from the database
+                        db.session.delete(existing_file)
+                        db.session.commit()
+
+                    # Save the new file in the database as binary
                     new_file = FileUpload(filename=filename, file_data=file_data)
                     db.session.add(new_file)
                     db.session.commit()
 
-                    # Reset file pointer to the beginning after reading
-                    file.seek(0)
-                    
-                    # Extract data from the file (assuming CSV)
+                    # Extract and process data from the uploaded CSV file
+                    file.seek(0)  # Reset file pointer to start
                     file_content = StringIO(file.read().decode('utf-8'))
                     csv_reader = csv.DictReader(file_content)
 
+                    # Insert the new data into the AnalyticsData model
                     for row in csv_reader:
-                        # Assuming the CSV contains the necessary columns for AnalyticsData
-                        # new_entry = AnalyticsData(
-                        #     version=row.get('version', 'N/A'),
-                        #     user_id=row.get('user_id', 'N/A'),
-                        #     college=row.get('college', 'N/A'),
-                        #     location=row.get('location', 'N/A'),
-                        #     module=row.get('module', 'N/A'),
-                        #     submodule=row.get('submodule', ''),  # Handle optional field
-                        #     time=row.get('time', datetime.now().strftime("%H:%M:%S")),
-                        #     duration=row.get('duration', '0'),
-                        #     date=datetime.strptime(row.get('date', datetime.now().strftime("%Y-%m-%d")),'%Y-%m-%d').date()
-                        # )
-                        # db.session.add(new_entry)
                         try:
+                            # Extract date and ensure correct parsing
                             date_str = row.get('date', '').strip()
                             parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
 
@@ -65,7 +76,8 @@ class FileAdminView(BaseView):
                                 submodule=row.get('submodule', ''),
                                 time=row.get('time', datetime.now().strftime("%H:%M:%S")),
                                 duration=row.get('duration', '0'),
-                                date=parsed_date
+                                date=parsed_date,
+                                file_id=new_file.id  # Link the AnalyticsData entry to the file
                             )
                             db.session.add(new_entry)
                         except Exception as e:
@@ -74,7 +86,7 @@ class FileAdminView(BaseView):
                     # Commit to the database
                     db.session.commit()
 
-                    flash(f"File '{filename}' uploaded and data extracted successfully!", 'success')
+                    flash(f"File '{filename}' uploaded, old data overridden, and new data extracted successfully!", 'success')
 
                 except Exception as e:
                     flash(f"An error occurred: {str(e)}", 'danger')

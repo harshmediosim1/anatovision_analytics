@@ -7,7 +7,10 @@ from flask import render_template, flash, redirect,url_for
 from apps.models import AnalyticsData
 from apps import db
 
-
+"""
+This Python class defines a custom analytics view that queries and displays analytics data using a
+ custom template.
+"""
 class CustomAnalyticsView(BaseView):
     # You can set a name for this view
     def is_accessible(self):

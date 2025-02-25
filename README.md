@@ -59,14 +59,21 @@ cadaviz-analytics/
 │   ├   ├── __init__.py
 │   ├   ├── analytics_admin.py  
 │   ├   ├── file_admin.py
+│   ├   ├── user_admin.py
 │   ├── routes/                 # GET api Defination
 │   ├   ├── __init__.py
 │   ├   ├── ai_routes.py
+│   ├   ├── auth_routes.py
 │   ├   ├── unity_routes.py
 │   ├── templates/              # Contains HTML templates for flask admin
 │   ├   ├── analytics_data.html           
 │   ├   ├── file_admin.html            
-│   ├   ├── master.html        
+│   ├   ├── master.html 
+│   ├   ├── login.html
+│   ├   ├── index.html
+│   ├── static/              # Contains HTML templates for flask admin
+│   ├   ├── images/  
+│   ├       ├── cadaviz.png    
 │   ├── tests/
 │   ├── utils/                
 │   ├── __init__.py
@@ -91,4 +98,30 @@ cadaviz-analytics/
 ├── README.md
 ├── requirements.txt    # flask level dependancy
 
+```
+
+## Create Admin User Using Flask:
+```
+Open flask shell using flask shell
+from apps import db
+from apps.models import User
+admin_user=User(username="admin", email="admin@immersivelabz.com", is_admin=True)
+admin_user.set_password("admin")
+db.session.add(admin_user)
+db.session.commit()
+```
+## Create Admin User Using Flask:
+- if we used docker container then we have to create admin user in container isloation using following steps. 
+1.  Create Admin User Inside the Dockerized Flask App(Access the Flask App Container)
+    cmd - ```docker exec -it cadaviz_web sh  (cadaviz_web is our flask service name)
+    Then followed the next cmd using flask shell
+```
+    Open flask shell - flask shell
+    extecutes following cmd from step 3
+    from apps import db
+    from apps.models import User
+    admin_user=User(username="admin", email="admin@immersivelabz.com", is_admin=True)
+    admin_user.set_password("admin")
+    db.session.add(admin_user)
+    db.session.commit()
 ```
