@@ -4,16 +4,16 @@ from dash import dcc, html, no_update
 import pandas as pd
 import plotly.express as px
 from apps.data_processing import fetch_data, validate_user
-from apps.layout import dashboard_layout, login_layout ,Main_layout
+from apps.layout import dashboard_layout, login_layout, Main_layout
 from apps.charts import create_pie_chart, create_stacked_bar_chart, create_line_chart, create_pie_chart_for_date
-import logging
+from apps.logger import logger
 from apps.socket_manager import socketio
 
-# Configure logging
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+# Global data storage
+existing_data = pd.DataFrame(columns=["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"])
 
-existing_data = pd.DataFrame()
 def register_callbacks(app):
+
     @app.callback(
         [Output('page-content', 'children'),
          Output('login-feedback', 'children'),
@@ -24,32 +24,55 @@ def register_callbacks(app):
          State('login-state', 'data')]
     )
     def manage_login(login_clicks, username, password, login_state):
+        """Handles user login with logging."""
         ctx = dash.callback_context
-        print("Callback triggered!")
 
         if not ctx.triggered:
-            print("No trigger detected. Returning login layout.")
+            logger.info("No trigger detected. Returning login layout.")
             return login_layout, "", login_state  
 
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        print(f"Button clicked: {button_id}")
 
         if button_id == 'login-button':
-            print(f"Attempting login with Username: {username} and Password: {password}")
+            logger.info(f"Login attempt: Username={username}")
 
             if not username or not password:
-                print("Login failed: Missing username or password")
+                logger.warning("Login failed: Missing credentials")
                 return login_layout, "Please enter username and password", False  
 
             is_valid, message = validate_user(username, password)
             if is_valid:
-                print("Login successful!")
+                logger.info(f"Login successful for user: {username}")
                 return dashboard_layout, "", True 
             else:
-                print("Login failed: Invalid credentials")
+                logger.warning(f"Login failed for user: {username} - Invalid credentials")
                 return login_layout, "Invalid username or password", False  
 
         return no_update, no_update, no_update
+
+    @socketio.on('data_update')  
+    def handle_data_update(data):  
+        """Handles real-time data updates from the socket connection."""  
+        try:  
+            logger.info(f"Received real-time update: {data}")  
+            global existing_data  
+
+            # Fetch new data  
+            new_data, _ = fetch_data()  
+
+            if not new_data.empty:  
+                # Merge only new records  
+                new_data = new_data[~new_data.isin(existing_data)].dropna()  
+                if not new_data.empty:  
+                    existing_data = pd.concat([existing_data, new_data]).drop_duplicates().reset_index(drop=True)  
+                    logger.info(f"{len(new_data)} new records added.")  
+
+            # Notify connected clients to refresh the dashboard  
+            socketio.emit('refresh_dashboard', {'status': 'data_updated'})  
+
+        except Exception as e:  
+            logger.error(f"Error in handle_data_update: {e}", exc_info=True)   
+
     @app.callback(
         [
             Output('active-users-line-chart', 'figure'),
@@ -81,18 +104,22 @@ def register_callbacks(app):
         ]  
     )
     def update_graphs(user_id, module, start_date, end_date, version, location, visualizations):
+        """Updates dashboard charts based on user-selected filters."""
         global existing_data  
 
         try:
-            new_data, latest_update_time = fetch_data()
+            # **Fetch and update new data before filtering**
+            new_data, _ = fetch_data()
 
             if not new_data.empty:
                 new_data = new_data[~new_data.isin(existing_data)].dropna()
                 if not new_data.empty:
                     existing_data = pd.concat([existing_data, new_data]).drop_duplicates().reset_index(drop=True)
 
+            # **Ensure data is available before proceeding**
             if existing_data.empty:
-                return [no_update] * 17   
+                logger.warning("No data available for filtering")
+                return [no_update] * 17  
 
             filtered_df = existing_data.copy()
 
@@ -106,11 +133,10 @@ def register_callbacks(app):
                 format="%Y-%m-%d %H:%M:%S", 
                 errors="coerce"
             )
-            filtered_df = filtered_df.dropna(subset=["datetime"])  # Drop invalid dates
-
-            # Ensure date format is consistent for the table
+            filtered_df = filtered_df.dropna(subset=["datetime"])  
             filtered_df["date"] = filtered_df["datetime"].dt.strftime("%Y-%m-%d")
 
+            # Filter data based on user selections
             if user_id:
                 filtered_df = filtered_df[filtered_df["user_id"].isin(user_id)]
             if module:
@@ -124,45 +150,57 @@ def register_callbacks(app):
             if location:
                 filtered_df = filtered_df[filtered_df["location"].isin(location)]
 
+            if filtered_df.empty:
+                logger.warning("Filtered DataFrame is empty after applying filters.")
+                return [no_update] * 17  
+
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
 
             if 'active-users' in visualizations:
-                last_7_days_df = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(days=7)]
-                active_users_fig = px.line(
-                    last_7_days_df.groupby('datetime').user_id.nunique().reset_index(),
-                    x='datetime',
-                    y='user_id',
-                    title="Active Users Over Time (Last 7 Days)"
-                )
+               last_7_days_df = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(days=7)]
+               active_users_df = last_7_days_df.groupby('datetime').user_id.nunique().reset_index()
 
-                total_users = filtered_df['user_id'].nunique()
-                active_users_last_hour = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(hours=1)]['user_id'].nunique()
-                active_users_last_7_days = last_7_days_df['user_id'].nunique()
+               # Create the active users line chart
+               active_users_fig = px.line(
+                   active_users_df,
+                   x='datetime',
+                   y='user_id',
+                   title="Active Users Over Time (Last 7 Days)"
+               )
 
-                active_users_fig.add_annotation(
-                    x=0.5, 
-                    y=1.1,
-                    xref="paper",
-                    yref="paper", 
-                    text=f"Total Users: {total_users}<br>Active Users (Last 1 Hour): {active_users_last_hour}<br>Active Users (Last 7 Days): {active_users_last_7_days}",
-                    showarrow=False,  
-                    font=dict(size=14),  
-                    align="center", 
-                    bgcolor="rgba(255, 255, 255, 0.7)" 
-                )
+               # Calculate total unique users, active users in the last hour, and active users in the last 7 days
+               total_users = filtered_df['user_id'].nunique()
+               active_users_last_hour = filtered_df[filtered_df['datetime'] >= pd.Timestamp.now() - pd.Timedelta(hours=1)]['user_id'].nunique()
+               active_users_last_7_days = last_7_days_df['user_id'].nunique()
 
-                active_users_fig.update_xaxes(
-                    tickmode="array",
-                    tickformat="%Y-%m-%d", 
-                    tickvals=[(pd.Timestamp.now() - pd.Timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)],
-                    range=[(pd.Timestamp.now() - pd.Timedelta(days=7)).strftime('%Y-%m-%d'), pd.Timestamp.now().strftime('%Y-%m-%d')]
-                )
-                active_users_fig.update_layout(
-                    xaxis_title=None,
-                    yaxis_title=None
-                )
+               # Add an annotation with these statistics
+               active_users_fig.add_annotation(
+                   x=0.5, 
+                   y=1.1,
+                   xref="paper",
+                   yref="paper", 
+                   text=f"Total Users: {total_users}<br>Active Users (Last 1 Hour): {active_users_last_hour}<br>Active Users (Last 7 Days): {active_users_last_7_days}",
+                   showarrow=False,  
+                   font=dict(size=14),  
+                   align="center", 
+                   bgcolor="rgba(255, 255, 255, 0.7)" 
+               )
 
+               active_users_fig.update_xaxes(
+                   tickmode="array",
+                   tickformat="%Y-%m-%d", 
+                   tickvals=[(pd.Timestamp.now() - pd.Timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)],
+                   range=[(pd.Timestamp.now() - pd.Timedelta(days=7)).strftime('%Y-%m-%d'), pd.Timestamp.now().strftime('%Y-%m-%d')]
+               )
+
+               # Update layout to remove axis titles
+               active_users_fig.update_layout(
+                   xaxis_title=None,
+                   yaxis_title=None
+               )
+
+            # Create other visualizations as needed (pie, stacked-bar, line-chart, etc.)
             pie_fig = {}
             stacked_bar_fig = {}
             line_chart_fig = {}
@@ -176,7 +214,7 @@ def register_callbacks(app):
 
             if 'line-chart' in visualizations:
                 line_chart_fig = create_line_chart(filtered_df) 
-        
+
             if 'pie-2' in visualizations:
                 if start_date:
                     pie_fig_2 = create_pie_chart_for_date(filtered_df, start_date)
@@ -211,7 +249,6 @@ def register_callbacks(app):
                 [{'label': version, 'value': version} for version in existing_data['version'].unique()],
                 [{'label': location, 'value': location} for location in existing_data['location'].unique()]
             )
-
         except Exception as e:
-            logging.error(f"Error in update_graphs: {e}", exc_info=True)
+            logger.error(f"Error in update_graphs: {e}", exc_info=True)
             return [no_update] * 17

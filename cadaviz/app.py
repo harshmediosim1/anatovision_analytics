@@ -7,4 +7,4 @@ app.layout = Main_layout
 register_callbacks(app)
 
 if __name__ == '__main__':
-    socketio.run(app.server, debug=False, host="0.0.0.0", port=8050)
+    socketio.run(app.server, debug=True, host="0.0.0.0", port=8050)

@@ -1,12 +1,15 @@
 import logging
 from datetime import date
 from dash import dcc, html, dash_table
-from apps.data_processing import fetch_data  
+from apps.data_processing import fetch_data
+from apps.logger import logger  
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logging.info("Dashboard is initializing...")
 
-df, _ = fetch_data()  
+logger.info("Dashboard is initializing...")
+
+df, _ = fetch_data() 
+logger.info("Initial data fetched successfully.")
+
 
 DEFAULT_VISUALIZATIONS = ['active-users', 'table']  
 
@@ -254,7 +257,7 @@ dashboard_layout = html.Div(children=[
                                     {"name": "Duration (min)", "id": "duration"},
                                 ],
                                 style_table={
-                                    'height': '800px',
+                                    'height': 'auto',
                                     'overflowY': 'auto',
                                     'backgroundColor': '#F5F5F5',
                                     'overflowX': 'scroll',   
