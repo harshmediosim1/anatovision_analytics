@@ -25,9 +25,9 @@ pip install -r requirements.txt
 ```
 ## Apply migrations to set up the database:
 ```
-flask db init (This creates a migrations/ directory to track migrations.)
-flask db migrate -m "comment" (This command will generate a migration script based on the current state of your models.)
-flask db upgrade (This command applies the migration to the database.)
+flask db init #This creates a migrations/ directory to track migrations.
+flask db migrate -m "comment" #This command will generate a migration script based on the current state of your models.
+flask db upgrade #This command applies the migration to the database.
 ```
 ## Run the development server:
 ```
@@ -44,8 +44,8 @@ services Name- Flask App(cadaviz_web), Dash App(dash_app), Database(db)
 
 ## Docker Initial Commands:
 ```
-docker-compose build (for build the image and container)
-docker-compose up (for run the container)
+docker-compose build #for build the image and container
+docker-compose up #for run the container
 ```
 ## Docker DB Upgrade Command:
 cadaviz_web i.e our flask app service name
