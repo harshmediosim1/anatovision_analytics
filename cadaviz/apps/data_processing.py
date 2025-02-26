@@ -5,7 +5,7 @@ from apps.socket_manager import socketio
 from apps.logger import logger
 
 # API Endpoint
-URL = "http://cadaviz_web:5000/ai/analytics/data"
+URL="http://cadaviz_web:5000/ai/analytics/data"
 
 # Global Data Storage
 existing_data = pd.DataFrame(columns=["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"])
