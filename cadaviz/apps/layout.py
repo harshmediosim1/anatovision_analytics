@@ -254,7 +254,7 @@ dashboard_layout = html.Div(children=[
                                     {"name": "Duration (min)", "id": "duration"},
                                 ],
                                 style_table={
-                                    'height': '800px',
+                                    'height': 'auto',
                                     'overflowY': 'auto',
                                     'backgroundColor': '#F5F5F5',
                                     'overflowX': 'scroll',   

@@ -4,7 +4,7 @@ import datetime
 from apps.socket_manager import socketio  # Import socketio from app.py
 
 # API Endpoint
-URL = "http://cadaviz_web:5000/ai/analytics/data"
+URL="http://cadaviz_web:5000/ai/analytics/data"
 
 existing_data = pd.DataFrame()
 
