@@ -1,20 +1,17 @@
-#Python Import
+# Python Import
 
-#Flask Import
+# Flask Import
 from flask import request, redirect, url_for, flash, send_file
 from flask_admin import expose, BaseView
-#App Import
+# App Import
 from apps.models import FileUpload, AnalyticsData  # Import AnalyticsData
 from apps import db
-#Third-party Import
+# Third-party Import
 from werkzeug.utils import secure_filename
 import io
 import csv
 from io import StringIO
 from datetime import datetime
-
-'''The `FileAdminView` class in Python defines methods for uploading, extracting data from file,
-downloading, and deleting files in a web application.'''
 import hashlib
 
 def generate_file_hash(file_data):
@@ -22,6 +19,15 @@ def generate_file_hash(file_data):
     hash_md5 = hashlib.md5()
     hash_md5.update(file_data)
     return hash_md5.hexdigest()
+
+def parse_date(date_str):
+    """Try multiple date formats to parse the date."""
+    for fmt in ("%Y-%m-%d", "%Y/%m/%d"):  # Add more formats if needed
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f"Time data '{date_str}' does not match expected formats")
 
 class FileAdminView(BaseView):
     @expose('/', methods=['GET', 'POST'])
@@ -40,7 +46,6 @@ class FileAdminView(BaseView):
 
                     # If the file exists, delete old AnalyticsData entries related to the file
                     if existing_file:
-                        # Remove old AnalyticsData entries related to the old file
                         analytics_data_entries = AnalyticsData.query.filter_by(file_id=existing_file.id).all()
                         for entry in analytics_data_entries:
                             db.session.delete(entry)
@@ -63,9 +68,9 @@ class FileAdminView(BaseView):
                     # Insert the new data into the AnalyticsData model
                     for row in csv_reader:
                         try:
-                            # Extract date and ensure correct parsing
+                            # Extract and parse date
                             date_str = row.get('date', '').strip()
-                            parsed_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.now().date()
+                            parsed_date = parse_date(date_str) if date_str else datetime.now().date()
 
                             new_entry = AnalyticsData(
                                 version=row.get('version', 'N/A'),
@@ -82,6 +87,7 @@ class FileAdminView(BaseView):
                             db.session.add(new_entry)
                         except Exception as e:
                             flash(f"Error processing row {row}: {str(e)}", 'danger')
+                            continue  # Skip this row and move to the next one
 
                     # Commit to the database
                     db.session.commit()
