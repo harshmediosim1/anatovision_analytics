@@ -26,4 +26,4 @@ env.bak/
 *.swp
 
 #cert
-cert/
+certs/
