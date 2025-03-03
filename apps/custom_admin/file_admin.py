@@ -1,24 +1,28 @@
-# Python Import
-
-# Flask Import
-from flask import request, redirect, url_for, flash, send_file
-from flask_admin import expose, BaseView
-# App Import
-from apps.models import FileUpload, AnalyticsData  # Import AnalyticsData
-from apps import db
-# Third-party Import
-from werkzeug.utils import secure_filename
+# Python Imports
 import io
 import csv
-from io import StringIO
-from datetime import datetime
 import hashlib
+from datetime import datetime
+
+# Flask Imports
+from flask import request, redirect, url_for, flash, send_file
+from flask_admin import expose, BaseView
+
+# App Imports
+from apps.models import FileUpload, AnalyticsData
+from apps import db
+
+# Third-party Imports
+from werkzeug.utils import secure_filename
+from io import StringIO
+
 
 def generate_file_hash(file_data):
     """Generate a hash for the file content to check for duplicates."""
     hash_md5 = hashlib.md5()
     hash_md5.update(file_data)
     return hash_md5.hexdigest()
+
 
 def parse_date(date_str):
     """Try multiple date formats to parse the date."""
@@ -28,6 +32,7 @@ def parse_date(date_str):
         except ValueError:
             continue
     raise ValueError(f"Time data '{date_str}' does not match expected formats")
+
 
 class FileAdminView(BaseView):
     @expose('/', methods=['GET', 'POST'])
@@ -68,16 +73,23 @@ class FileAdminView(BaseView):
                     # Insert the new data into the AnalyticsData model
                     for row in csv_reader:
                         try:
+                            # Strip whitespace and check if all values are empty
+                            if all(not str(value).strip() for value in row.values()):
+                                continue  # Skip empty row
+
                             # Extract and parse date
                             date_str = row.get('date', '').strip()
                             parsed_date = parse_date(date_str) if date_str else datetime.now().date()
 
+                            # Ensure `user_id` is treated as a string
+                            user_id = str(row.get('user_id', ''))
+
                             new_entry = AnalyticsData(
-                                version=row.get('version', 'N/A'),
-                                user_id=row.get('user_id', 'N/A'),
-                                college=row.get('college', 'N/A'),
-                                location=row.get('location', 'N/A'),
-                                module=row.get('module', 'N/A'),
+                                version=row.get('version', ''),
+                                user_id=user_id,
+                                college=row.get('college', ''),
+                                location=row.get('location', ''),
+                                module=row.get('module', ''),
                                 submodule=row.get('submodule', ''),
                                 time=row.get('time', datetime.now().strftime("%H:%M:%S")),
                                 duration=row.get('duration', '0'),
@@ -116,7 +128,16 @@ class FileAdminView(BaseView):
     @expose('/delete/<int:file_id>')
     def delete_file(self, file_id):
         file_record = FileUpload.query.get_or_404(file_id)
+
+        # Delete associated analytics data
+        analytics_data_entries = AnalyticsData.query.filter_by(file_id=file_record.id).all()
+        for entry in analytics_data_entries:
+            db.session.delete(entry)
+        db.session.commit()
+
+        # Delete file record
         db.session.delete(file_record)
         db.session.commit()
+        
         flash(f"File '{file_record.filename}' deleted successfully!", 'success')
         return redirect(url_for('.index_view'))
