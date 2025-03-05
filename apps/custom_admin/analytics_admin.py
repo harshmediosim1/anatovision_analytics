@@ -2,7 +2,7 @@
 
 #Flask Import
 from flask_admin import BaseView, expose
-from flask import render_template, flash, redirect,url_for
+from flask import render_template, flash, redirect,url_for,request
 # App Import
 from apps.models import AnalyticsData
 from apps import db
@@ -19,8 +19,11 @@ class CustomAnalyticsView(BaseView):
 
     @expose('/')
     def index(self):
-        # Query all the analytics data
-        data = AnalyticsData.query.all()
+        page = request.args.get('page', 1, type=int)  # Get page number from request, default to 1
+        per_page = 10  # Number of records per page
 
-        # Render a custom template to display the data
-        return self.render('admin/analytics_data.html', data=data)
+        # Query analytics data with pagination
+        pagination = AnalyticsData.query.paginate(page=page, per_page=per_page, error_out=False)
+        data = pagination.items  # Get records for the current page
+
+        return self.render('admin/analytics_data.html', data=data, pagination=pagination)

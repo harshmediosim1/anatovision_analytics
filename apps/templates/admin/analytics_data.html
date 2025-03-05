@@ -46,5 +46,32 @@
             </tbody>
         </table>
     </div>
+
+     <!-- Pagination Controls -->
+     <nav>
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.prev_num }}">Previous</a>
+            </li>
+            {% endif %}
+            
+            {% for num in pagination.iter_pages() %}
+            {% if num %}
+            <li class="page-item {% if num == pagination.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ pagination.next_num }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
 {% endblock %}
