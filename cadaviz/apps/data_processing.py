@@ -45,7 +45,7 @@ def fetch_data():
             return existing_data, None  
 
         combined_data = pd.concat([existing_data, new_df]).reset_index(drop=True)
-        combined_data.sort_values(by=['date', 'time'], ascending=[False, False], inplace=True)
+       # combined_data.sort_values(by=['date', 'time'], ascending=[False, False], inplace=True)
         new_rows = combined_data.iloc[len(existing_data):]
 
         if not new_rows.empty:

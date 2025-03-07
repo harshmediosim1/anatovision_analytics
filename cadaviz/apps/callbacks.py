@@ -11,44 +11,40 @@ from apps.socket_manager import socketio
 
 # Global data storage
 existing_data = pd.DataFrame(columns=["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"])
-
 def register_callbacks(app):
 
     @app.callback(
         [Output('page-content', 'children'),
          Output('login-feedback', 'children'),
-         Output('login-state', 'data')],
+         Output('login-state', 'data'),
+         Output('username', 'value'),
+         Output('password', 'value')],
         [Input('login-button', 'n_clicks')],
         [State('username', 'value'),
          State('password', 'value'),
          State('login-state', 'data')]
     )
     def manage_login(login_clicks, username, password, login_state):
-        """Handles user login with logging."""
         ctx = dash.callback_context
 
         if not ctx.triggered:
-            logger.info("No trigger detected. Returning login layout.")
-            return login_layout, "", login_state  
+            if login_state:
+                return dashboard_layout, "", login_state, username, password
+            return login_layout, "", login_state, username, password
 
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
         if button_id == 'login-button':
-            logger.info(f"Login attempt: Username={username}")
-
             if not username or not password:
-                logger.warning("Login failed: Missing credentials")
-                return login_layout, "Please enter username and password", False  
+                return login_layout, "Please enter username and password", False, username, password
 
             is_valid, message = validate_user(username, password)
             if is_valid:
-                logger.info(f"Login successful for user: {username}")
-                return dashboard_layout, "", True 
+                return dashboard_layout, "", True, username, password
             else:
-                logger.warning(f"Login failed for user: {username} - Invalid credentials")
-                return login_layout, "Invalid username or password", False  
+                return login_layout, "Invalid username or password", False, "", ""  
 
-        return no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update
 
     @socketio.on('data_update')  
     def handle_data_update(data):  
@@ -91,7 +87,8 @@ def register_callbacks(app):
             Output('user-id-filter', 'options'),
             Output('module-filter', 'options'),
             Output('version-filter', 'options'),
-            Output('location-filter', 'options')
+            Output('location-filter', 'options'),
+            Output('no-visualization-message', 'style') 
         ],
         [
             Input('user-id-filter', 'value'),
@@ -119,7 +116,7 @@ def register_callbacks(app):
             # **Ensure data is available before proceeding**
             if existing_data.empty:
                 logger.warning("No data available for filtering")
-                return [no_update] * 17  
+                return [no_update] * 18
 
             filtered_df = existing_data.copy()
 
@@ -152,7 +149,7 @@ def register_callbacks(app):
 
             if filtered_df.empty:
                 logger.warning("Filtered DataFrame is empty after applying filters.")
-                return [no_update] * 17  
+                return [no_update] * 18
 
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
@@ -193,14 +190,16 @@ def register_callbacks(app):
                    tickvals=[(pd.Timestamp.now() - pd.Timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)],
                    range=[(pd.Timestamp.now() - pd.Timedelta(days=7)).strftime('%Y-%m-%d'), pd.Timestamp.now().strftime('%Y-%m-%d')]
                )
-
-               # Update layout to remove axis titles
                active_users_fig.update_layout(
-                   xaxis_title=None,
-                   yaxis_title=None
-               )
-
-            # Create other visualizations as needed (pie, stacked-bar, line-chart, etc.)
+                modebar=dict(
+                    remove=[
+                        "zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", 
+                        "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian", 
+                        "Box Select", "Autoscale" ]
+                ),
+                xaxis_title=None,
+                yaxis_title=None
+            )
             pie_fig = {}
             stacked_bar_fig = {}
             line_chart_fig = {}
@@ -239,6 +238,8 @@ def register_callbacks(app):
                 table_style = {'display': 'block'}
                 table_title_style = {'display': 'block'}
 
+             # Show the message if no visualizations are selected
+            no_visualization_message_style = {'display': 'block', 'fontWeight': 'bold','fontSize': '25px','color': '#0010d3','textAlign': 'center',} if not visualizations else {'display': 'none'}
             return (
                 active_users_fig, pie_fig, stacked_bar_fig, line_chart_fig, pie_fig_2,
                 filtered_df.to_dict('records'),
@@ -247,8 +248,9 @@ def register_callbacks(app):
                 [{'label': user, 'value': user} for user in existing_data['user_id'].unique()],
                 [{'label': module, 'value': module} for module in existing_data['module'].unique()],
                 [{'label': version, 'value': version} for version in existing_data['version'].unique()],
-                [{'label': location, 'value': location} for location in existing_data['location'].unique()]
+                [{'label': location, 'value': location} for location in existing_data['location'].unique()],
+                no_visualization_message_style
             )
         except Exception as e:
             logger.error(f"Error in update_graphs: {e}", exc_info=True)
-            return [no_update] * 17
+            return [no_update] * 18
