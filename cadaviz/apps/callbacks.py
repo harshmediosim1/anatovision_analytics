@@ -91,7 +91,8 @@ def register_callbacks(app):
             Output('user-id-filter', 'options'),
             Output('module-filter', 'options'),
             Output('version-filter', 'options'),
-            Output('location-filter', 'options')
+            Output('location-filter', 'options'),
+            Output('no-visualization-message', 'style') 
         ],
         [
             Input('user-id-filter', 'value'),
@@ -119,7 +120,7 @@ def register_callbacks(app):
             # **Ensure data is available before proceeding**
             if existing_data.empty:
                 logger.warning("No data available for filtering")
-                return [no_update] * 17  
+                return [no_update] * 18
 
             filtered_df = existing_data.copy()
 
@@ -152,7 +153,7 @@ def register_callbacks(app):
 
             if filtered_df.empty:
                 logger.warning("Filtered DataFrame is empty after applying filters.")
-                return [no_update] * 17  
+                return [no_update] * 18
 
             active_users_fig = {}
             last_7_days_df = pd.DataFrame()
@@ -193,14 +194,16 @@ def register_callbacks(app):
                    tickvals=[(pd.Timestamp.now() - pd.Timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7)],
                    range=[(pd.Timestamp.now() - pd.Timedelta(days=7)).strftime('%Y-%m-%d'), pd.Timestamp.now().strftime('%Y-%m-%d')]
                )
-
-               # Update layout to remove axis titles
                active_users_fig.update_layout(
-                   xaxis_title=None,
-                   yaxis_title=None
-               )
-
-            # Create other visualizations as needed (pie, stacked-bar, line-chart, etc.)
+                modebar=dict(
+                    remove=[
+                        "zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", 
+                        "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian", 
+                        "Box Select", "Autoscale" ]
+                ),
+                xaxis_title=None,
+                yaxis_title=None
+            )
             pie_fig = {}
             stacked_bar_fig = {}
             line_chart_fig = {}
@@ -239,6 +242,8 @@ def register_callbacks(app):
                 table_style = {'display': 'block'}
                 table_title_style = {'display': 'block'}
 
+             # Show the message if no visualizations are selected
+            no_visualization_message_style = {'display': 'block', 'fontWeight': 'bold','fontSize': '25px','color': '#0010d3','textAlign': 'center',} if not visualizations else {'display': 'none'}
             return (
                 active_users_fig, pie_fig, stacked_bar_fig, line_chart_fig, pie_fig_2,
                 filtered_df.to_dict('records'),
@@ -247,8 +252,9 @@ def register_callbacks(app):
                 [{'label': user, 'value': user} for user in existing_data['user_id'].unique()],
                 [{'label': module, 'value': module} for module in existing_data['module'].unique()],
                 [{'label': version, 'value': version} for version in existing_data['version'].unique()],
-                [{'label': location, 'value': location} for location in existing_data['location'].unique()]
+                [{'label': location, 'value': location} for location in existing_data['location'].unique()],
+                no_visualization_message_style
             )
         except Exception as e:
             logger.error(f"Error in update_graphs: {e}", exc_info=True)
-            return [no_update] * 17
+            return [no_update] * 18

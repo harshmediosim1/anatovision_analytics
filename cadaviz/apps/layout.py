@@ -122,15 +122,15 @@ dashboard_layout = html.Div(children=[
         children=[
             html.Div(
                 style={
-                    'width': '25%',  
+                    'width': '25%',
                     'height': '100vh',
-                    'padding': '8px',  
+                    'padding': '8px',
                     'background': 'rgba(44, 62, 80, 0.6)', 
                     'color': 'white',
                     'fontFamily': 'Arial, sans-serif',
                     'borderRight': '5px solid rgba(0, 123, 255, 0.6)', 
                     'backdropFilter': 'blur(12px)',
-                    'borderRadius': '12px',  
+                    'borderRadius': '12px',
                     'boxShadow': '4px 4px 10px rgba(0, 0, 0, 0.3)',
                     'overflowY': 'auto',
                     'scrollBehavior': 'smooth',
@@ -139,7 +139,7 @@ dashboard_layout = html.Div(children=[
                     'top': '0'
                 },
                 children=[
-                    html.H3('Home', style={'textAlign': 'center', 'color': '#007bff', 'fontSize': '20px', 'fontWeight': 'bold','textShadow': '0px 0px 8px rgba(0, 123, 255, 0.7)'  }), 
+                    html.H3('Home', style={'textAlign': 'center', 'color': '#007bff', 'fontSize': '20px', 'fontWeight': 'bold', 'textShadow': '0px 0px 8px rgba(0, 123, 255, 0.7)'}), 
                     html.Div([
                         html.Label("Select Visualization(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}), 
                         dcc.Dropdown(
@@ -155,10 +155,9 @@ dashboard_layout = html.Div(children=[
                             value=DEFAULT_VISUALIZATIONS,
                             multi=True,
                             placeholder="Select Visualizations",
-                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px' ,'textOverflow': 'ellipsis'}  
+                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
                         ),
                     ], style={'marginBottom': '4px'}),  
-
                     html.Div([
                         html.Label("Select User ID(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
                         dcc.Dropdown(
@@ -166,8 +165,9 @@ dashboard_layout = html.Div(children=[
                             options=[{'label': user, 'value': user} for user in df['user_id'].unique()],
                             multi=True,
                             placeholder="Select User ID(s)",
-                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px' ,'textOverflow': 'ellipsis'})
-                    ], style={'marginBottom': '4px'}), 
+                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
+                        ),
+                    ], style={'marginBottom': '4px'}),  
 
                     html.Div([
                         html.Label("Select Module(s):", style={'color': '#00eaff', 'fontWeight': 'bold', 'fontSize': '12px'}),  
@@ -176,7 +176,7 @@ dashboard_layout = html.Div(children=[
                             options=[{'label': module, 'value': module} for module in df['module'].unique()],
                             multi=True,
                             placeholder="Select Module(s)",
-                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px','textOverflow': 'ellipsis'}
+                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
                         ),
                     ], style={'marginBottom': '4px'}),  
 
@@ -187,7 +187,7 @@ dashboard_layout = html.Div(children=[
                             options=[{'label': version, 'value': version} for version in df['version'].unique()],
                             multi=True,
                             placeholder="Select Version(s)",
-                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px' ,'textOverflow': 'ellipsis'}  
+                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
                         ),
                     ], style={'marginBottom': '4px'}),  
 
@@ -200,7 +200,7 @@ dashboard_layout = html.Div(children=[
                             display_format='YYYY-MM-DD',
                             clearable=True,
                             max_date_allowed=date.today(),
-                            style={'borderRadius': '5px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px' ,'textOverflow': 'ellipsis'}  
+                            style={'borderRadius': '8px', 'padding': '2px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
                         ),
                     ], style={'marginBottom': '4px'}), 
 
@@ -211,7 +211,7 @@ dashboard_layout = html.Div(children=[
                             options=[{'label': location, 'value': location} for location in df['location'].unique()],
                             multi=True,
                             placeholder="Select Location(s)",
-                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px' ,'textOverflow': 'ellipsis'}  
+                            style={'borderRadius': '8px', 'padding': '3px', 'backgroundColor': '#F2F2F2', 'fontWeight': 'bold', 'color': '#000000', 'fontSize': '11px', 'textOverflow': 'ellipsis'}
                         ),
                     ], style={'marginBottom': '4px'}),
         
@@ -237,8 +237,8 @@ dashboard_layout = html.Div(children=[
                     dcc.Graph(id='stacked-bar-chart', style={'height': '500px', 'display': 'none'}),
                     dcc.Graph(id='line-chart', style={'height': '500px', 'display': 'none'}),
                     dcc.Graph(id='pie-chart-2', style={'height': '500px', 'display': 'none'}),
-                
-                    html.H3(' Data Table', id="table-title", style={'textAlign': 'center', 'display': 'none', 'fontSize': '22px', 'fontWeight': 'bold'}),
+
+                    html.H3('Data Table', id="table-title", style={'textAlign': 'center', 'display': 'none', 'fontSize': '22px', 'fontWeight': 'bold'}),
                     html.Div(
                         id='data-table-container',  
                         children=[
@@ -250,7 +250,6 @@ dashboard_layout = html.Div(children=[
                                     {"name": "Date", "id": "date"},
                                     {"name": "Time", "id": "time"},
                                     {"name": "Location", "id": "location"},
-                                 #   {"name": "State",  "id":  "state"},
                                     {"name": "College", "id": "college"},
                                     {"name": "Module", "id": "module"},
                                     {"name": "Submodule", "id": "submodule"},
@@ -260,13 +259,13 @@ dashboard_layout = html.Div(children=[
                                     'height': 'auto',
                                     'overflowY': 'auto',
                                     'backgroundColor': '#F5F5F5',
-                                    'overflowX': 'scroll',   
+                                    'overflowX': 'scroll',
                                     'borderBottom': '5px solid #FF5733',  
                                     'paddingBottom': '10px'
                                 },
                                 style_cell={
                                     'textAlign': 'center',
-                                    'padding': '8px',  
+                                    'padding': '8px',
                                     'color': 'black',
                                     'fontFamily': 'Arial, sans-serif'
                                 },
@@ -277,15 +276,29 @@ dashboard_layout = html.Div(children=[
                                 },
                             ),
                         ],
-                        style={'display': 'none'}  
+                        style={'display': 'none'}
                     ),
+
+                    # Added message here
+                    html.Div(
+                        id='no-visualization-message',
+                        children='Please select at least one visualization.',
+                        style={
+                            'display': 'none',
+                            'color': '#0010d3 ',  
+                            'fontWeight': 'bold',
+                            'fontSize': '25px',
+                            'textAlign': 'center',
+                             
+                         }
+                    )
                 ]
             ),
         ]
     )
 ])
+
 Main_layout = html.Div([
     dcc.Store(id='login-state', data=False),  
     html.Div(id="page-content", children=login_layout),
-
 ])

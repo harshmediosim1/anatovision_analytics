@@ -2,15 +2,24 @@ import plotly.express as px
 import pandas as pd
 
 def create_pie_chart(filtered_df):
-    return px.pie(
+    fig = px.pie(
         filtered_df, 
         names='module', 
         values='duration', 
         title="Total Time Spent per Module",
         color_discrete_sequence=px.colors.qualitative.Plotly 
     )
+    
+    # Update layout to show only the default download button
+    fig.update_layout(
+        modebar=dict(
+            remove=["zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian"]
+        )
+    )
+    
+    return fig
 
-def create_stacked_bar_chart(filtered_df ,title_color='Red'):
+def create_stacked_bar_chart(filtered_df, title_color='Red'):
     filtered_df['duration'] = pd.to_numeric(filtered_df['duration'], errors='coerce')
     top_modules = filtered_df.groupby('module')['duration'].sum().nlargest(5).index
     top_modules_df = filtered_df[filtered_df['module'].isin(top_modules)]
@@ -28,6 +37,13 @@ def create_stacked_bar_chart(filtered_df ,title_color='Red'):
             'duration': True, 
             'date': True,  
         }
+    )
+
+    # Update layout to show only the default download button
+    fig.update_layout(
+        modebar=dict(
+            remove=["zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian","Box Select","Autoscale"]
+        )
     )
 
     return fig
@@ -49,7 +65,7 @@ def create_line_chart(filtered_df):
         markers=True         
     )
     fig.update_traces(
-        hovertemplate="<b>College:</b> %<br><b>Date:</b> %{x}<br><b>Duration:</b> %{y} Minutes",
+        hovertemplate="<b>College:</b><br><b>Date:</b> %{x}<br><b>Duration:</b> %{y} Minutes",
         text=duration_by_college['college']
     )
     fig.update_layout(
@@ -58,6 +74,13 @@ def create_line_chart(filtered_df):
         title_font=dict(size=18),  
         xaxis=dict(tickformat="%Y-%m-%d"),  
         hovermode="x unified"      
+    )
+
+    # Update layout to show only the default download button
+    fig.update_layout(
+        modebar=dict(
+            remove=["zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian","Box Select","Autoscale"]
+        )
     )
 
     return fig
@@ -72,6 +95,13 @@ def create_pie_chart_for_date(filtered_df, start_date, title_color='Green'):
         names='module', 
         values='total_duration', 
         title=f"Module Usage Duration on {start_date.strftime('%Y-%m-%d')}"
+    )
+
+    # Update layout to show only the default download button
+    pie_fig_2.update_layout(
+        modebar=dict(
+            remove=["zoomIn", "zoomOut", "pan", "resetScale", "zoom", "saveImage", "select2d", "lasso2d", "hoverClosestCartesian", "hoverCompareCartesian"]
+        )
     )
 
     return pie_fig_2
