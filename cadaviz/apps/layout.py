@@ -299,6 +299,6 @@ dashboard_layout = html.Div(children=[
 ])
 
 Main_layout = html.Div([
-    dcc.Store(id='login-state', data=False),  
+    dcc.Store(id='login-state', data=False,storage_type='session'),  
     html.Div(id="page-content", children=login_layout),
 ])

@@ -11,44 +11,40 @@ from apps.socket_manager import socketio
 
 # Global data storage
 existing_data = pd.DataFrame(columns=["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"])
-
 def register_callbacks(app):
 
     @app.callback(
         [Output('page-content', 'children'),
          Output('login-feedback', 'children'),
-         Output('login-state', 'data')],
+         Output('login-state', 'data'),
+         Output('username', 'value'),
+         Output('password', 'value')],
         [Input('login-button', 'n_clicks')],
         [State('username', 'value'),
          State('password', 'value'),
          State('login-state', 'data')]
     )
     def manage_login(login_clicks, username, password, login_state):
-        """Handles user login with logging."""
         ctx = dash.callback_context
 
         if not ctx.triggered:
-            logger.info("No trigger detected. Returning login layout.")
-            return login_layout, "", login_state  
+            if login_state:
+                return dashboard_layout, "", login_state, username, password
+            return login_layout, "", login_state, username, password
 
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
         if button_id == 'login-button':
-            logger.info(f"Login attempt: Username={username}")
-
             if not username or not password:
-                logger.warning("Login failed: Missing credentials")
-                return login_layout, "Please enter username and password", False  
+                return login_layout, "Please enter username and password", False, username, password
 
             is_valid, message = validate_user(username, password)
             if is_valid:
-                logger.info(f"Login successful for user: {username}")
-                return dashboard_layout, "", True 
+                return dashboard_layout, "", True, username, password
             else:
-                logger.warning(f"Login failed for user: {username} - Invalid credentials")
-                return login_layout, "Invalid username or password", False  
+                return login_layout, "Invalid username or password", False, "", ""  
 
-        return no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update
 
     @socketio.on('data_update')  
     def handle_data_update(data):  
