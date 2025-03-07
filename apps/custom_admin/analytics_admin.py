@@ -6,7 +6,7 @@ from flask import render_template, flash, redirect,url_for,request
 # App Import
 from apps.models import AnalyticsData
 from apps import db
-
+from sqlalchemy import desc  # Import for sorting
 """
 This Python class defines a custom analytics view that queries and displays analytics data using a
  custom template.
@@ -23,7 +23,10 @@ class CustomAnalyticsView(BaseView):
         per_page = 10  # Number of records per page
 
         # Query analytics data with pagination
-        pagination = AnalyticsData.query.paginate(page=page, per_page=per_page, error_out=False)
+        # pagination = AnalyticsData.query.paginate(page=page, per_page=per_page, error_out=False)
+        pagination = AnalyticsData.query.order_by(desc(AnalyticsData.id)).paginate(
+        page=page, per_page=per_page, error_out=False
+        )
         data = pagination.items  # Get records for the current page
 
         return self.render('admin/analytics_data.html', data=data, pagination=pagination)

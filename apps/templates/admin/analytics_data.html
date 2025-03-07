@@ -3,52 +3,55 @@
 {% block title %}Analytics Data{% endblock %}
 
 {% block body %}
-<div class="container mt-4 pt-4">
+<div class="container-fluid mt-4 pt-4">
     <h1 class="mb-4 text-center">Analytics Data</h1>
     
-    <!-- Display Analytics Data in a Table -->
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Version</th>
-                    <th>User ID</th>
-                    <th>College</th>
-                    <th>Location</th>
-                    <th>Module</th>
-                    <th>Submodule</th>
-                    <th>Time(min)</th>
-                    <th>Duration</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in data %}
-                <tr>
-                    <td>{{ record.id }}</td>
-                    <td>{{ record.version }}</td>
-                    <td>{{ record.user_id }}</td>
-                    <td>{{ record.college }}</td>
-                    <td>{{ record.location }}</td>
-                    <td>{{ record.module }}</td>
-                    <td>{{ record.submodule }}</td>
-                    <td>{{ record.time }}</td>
-                    <td>{{ record.duration }}</td>
-                    <td>{{ record.date }}</td>
-    
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="11" class="text-center">No records found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Display Analytics Data in a Table without Horizontal Scroll -->
+    <div class="row">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table class="table table-striped w-100">
+                    <thead>
+                        <tr>
+                            <th class="px-3 py-2 text-nowrap">ID</th>
+                            <th class="px-3 py-2 text-nowrap">Date</th>
+                            <th class="px-3 py-2 text-nowrap">Version</th>
+                            <th class="px-3 py-2 text-nowrap">User ID</th>
+                            <th class="px-3 py-2 text-nowrap">College</th>
+                            <th class="px-3 py-2 text-nowrap">Location</th>
+                            <th class="px-3 py-2 text-nowrap">Module</th>
+                            <th class="px-3 py-2 text-nowrap">Submodule</th>
+                            <th class="px-3 py-2 text-nowrap">Time</th>
+                            <th class="px-3 py-2 text-nowrap">Duration (min)</th>                    
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in data %}
+                        <tr>                    
+                            <td class="text-nowrap">{{ record.id }}</td>
+                            <td class="text-nowrap">{{ record.date }}</td>
+                            <td class="text-nowrap">{{ record.version }}</td>
+                            <td class="text-nowrap">{{ record.user_id }}</td>
+                            <td class="text-nowrap">{{ record.college }}</td>
+                            <td class="text-nowrap">{{ record.location }}</td>
+                            <td class="text-nowrap">{{ record.module }}</td>
+                            <td class="text-nowrap">{{ record.submodule }}</td>
+                            <td class="text-nowrap">{{ record.time }}</td>
+                            <td class="text-nowrap">{{ record.duration }}</td>                       
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center">No records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-     <!-- Pagination Controls -->
-     <nav>
+    <!-- Pagination Controls -->
+    <nav>
         <ul class="pagination justify-content-center">
             {% if pagination.has_prev %}
             <li class="page-item">
@@ -73,5 +76,5 @@
             {% endif %}
         </ul>
     </nav>
-</div>
+</div>  
 {% endblock %}
