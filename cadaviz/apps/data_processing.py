@@ -44,16 +44,14 @@ def fetch_data():
         if new_df.empty:
             return existing_data, None  
 
-        combined_data = pd.concat([existing_data, new_df]).reset_index(drop=True)
-       # combined_data.sort_values(by=['date', 'time'], ascending=[False, False], inplace=True)
-        new_rows = combined_data.iloc[len(existing_data):]
+        # **Prepend new data without sorting by date or time**
+        existing_data = pd.concat([new_df, existing_data], ignore_index=True)
 
-        if not new_rows.empty:
-            existing_data = combined_data  
-            for _, row in new_rows.iterrows():
-                socketio.emit('data_update', {'status': 'new_row', 'row': row.to_dict()}, to='/')
+        # **Emit new rows in the order they arrived**
+        for _, row in new_df.iterrows():
+            socketio.emit('data_update', {'status': 'new_row', 'row': row.to_dict()}, to='/')
 
-        return existing_data, existing_data['date'].max() if not existing_data.empty else None  
+        return existing_data, None  
 
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching data: {e}", exc_info=True)
@@ -77,10 +75,6 @@ def process_json_data(data):
         for col in required_columns:
             if col not in df.columns:
                 df[col] = "Unknown" if col not in ["date", "duration"] else None
-
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        df['duration'] = pd.to_numeric(df['duration'], errors='coerce').fillna(0)
-        df['time'] = df['time'].astype(str).apply(lambda x: x if len(x) == 8 else x + ":00")
 
         return df
     
