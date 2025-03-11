@@ -6,7 +6,7 @@ from apps.logger import logger
 URL = "http://cadaviz_web:5000/ai/analytics/data"
 
 existing_data = pd.DataFrame(columns=[
-    "user_id", "version", "date", "time", "location", "college", 
+    "id", "user_id", "version", "date", "time", "location", "college", 
     "module", "submodule", "duration"
 ])
 
@@ -44,10 +44,10 @@ def fetch_data():
         if new_df.empty:
             return existing_data, None  
 
-        # **Prepend new data without sorting by date or time**
+        # **Append new data exactly in backend order (FIFO)**
         existing_data = pd.concat([new_df, existing_data], ignore_index=True)
 
-        # **Emit new rows in the order they arrived**
+        # Emit new rows in received order
         for _, row in new_df.iterrows():
             socketio.emit('data_update', {'status': 'new_row', 'row': row.to_dict()}, to='/')
 
@@ -61,7 +61,7 @@ def fetch_data():
         return existing_data, None
 
 def create_empty_dataframe():
-    columns = ["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"]
+    columns = ["id", "user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"]
     return pd.DataFrame(columns=columns)
 
 def process_json_data(data):
@@ -71,10 +71,12 @@ def process_json_data(data):
         
         df = pd.DataFrame(data)
 
-        required_columns = ["user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"]
+        required_columns = ["id", "user_id", "version", "date", "time", "location", "college", "module", "submodule", "duration"]
         for col in required_columns:
             if col not in df.columns:
-                df[col] = "Unknown" if col not in ["date", "duration"] else None
+                df[col] = "Unknown" if col not in ["date", "duration", "id"] else None
+
+        df["id"] = pd.to_numeric(df["id"], errors="coerce")  # Ensure ID is numeric
 
         return df
     
