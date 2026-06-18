@@ -1,22 +1,18 @@
 #Python Import
 #Flask Import
-from flask import Flask,redirect,url_for
+from flask import Flask, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_admin import Admin,AdminIndexView
 from flask_login import LoginManager,current_user
 
-
-
 db = SQLAlchemy()
 migrate = Migrate()
-
     
 #Admin Register
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 admin = Admin(name='Cadaviz Analytics', template_mode='bootstrap4')
-admin.template_mode = 'bootstrap4'
 
 # Custom Admin Index View for Access Control
 class MyAdminIndexView(AdminIndexView):
@@ -25,16 +21,31 @@ class MyAdminIndexView(AdminIndexView):
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("auth.login"))
+
+def init_dashboard(server):
+    from dash import Dash
+    from apps.dashboard.layout import serve_layout
+    from apps.dashboard.callbacks import register_callbacks
+
+    dash_app = Dash(
+        __name__,
+        server=server,
+        url_base_pathname='/dashboard/',
+        suppress_callback_exceptions=True
+    )
     
-    
-""" The 'create_app' function initializes a Flask application with SQLAlchemy database, migration
-    support, and an admin interface, along with registering various views and blueprints for different
-    functionalities.
-    :return: The 'create_app()' function is returning a Flask application instance that has been
-    configured with SQLAlchemy for database operations, Flask-Migrate for database migrations, and
-    Flask-Admin for administrative interface. It also registers various views and blueprints for
-    different parts of the application such as analytics data, file upload, Unity routes, and AI routes.
-    """
+    dash_app.layout = serve_layout
+    register_callbacks(dash_app)
+
+    # Protect Dashboard routes using Flask-Login
+    @server.before_request
+    def protect_dashboard():
+        if request.path.startswith('/dashboard'):
+            if not current_user.is_authenticated:
+                return redirect(url_for('auth.login'))
+
+    return dash_app
+
 def create_app():
     app = Flask(__name__, template_folder="templates",  static_folder='static')
     app.config.from_object('config.Config')
@@ -62,8 +73,14 @@ def create_app():
     app.register_blueprint(ai_bp, url_prefix='/ai')
     app.register_blueprint(auth_bp, url_prefix='/auth')
 
-    return app
+    @app.route('/')
+    def root():
+        return redirect('/dashboard/')
 
+    # Initialize Dashboard
+    app = init_dashboard(app).server
+
+    return app
 
 from apps.models import User
 

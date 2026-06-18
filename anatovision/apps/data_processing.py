@@ -1,9 +1,11 @@
+import os
 import pandas as pd
 import requests
 from apps.socket_manager import socketio
 from apps.logger import logger
 
-URL = "http://cadaviz_web:5000/ai/analytics/data"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5000")
+URL = f"{BACKEND_URL}/ai/analytics/data"
 
 existing_data = pd.DataFrame(columns=[
     "id", "user_id", "version", "date", "time", "location", "college", 

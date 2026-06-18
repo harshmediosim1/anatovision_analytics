@@ -12,7 +12,7 @@ auth_bp = Blueprint("auth", __name__, template_folder="templates")
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("admin.index"))
+        return redirect("/dashboard/")
 
     if request.method == "POST":
         username = request.form.get("username")
@@ -26,7 +26,7 @@ def login():
 
         login_user(user)
         flash("Login successful!", "success")
-        return redirect(url_for("admin.index"))
+        return redirect("/dashboard/")
 
     return render_template("admin/login.html")
 

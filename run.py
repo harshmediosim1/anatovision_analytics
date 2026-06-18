@@ -20,6 +20,6 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
 if __name__ == "__main__":
-    db.create_all()
-    os.getenv("DEBUG")
-    app.run(host="0.0.0.0", port=5000)  # Use 0.0.0.0 to allow external access
+    with app.app_context():
+        db.create_all()
+    app.run(host="0.0.0.0", port=5000)
